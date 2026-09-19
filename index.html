@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Experiment Kitchen — Ordering</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f3ec; --card: #ffffff; --ink: #201a14; --ink-soft: #75695c;
+  --accent: #d9481f; --accent-2: #f0803f; --accent-ink: #ffffff;
+  --line: #ece3d6; --low: #d43b2f; --low-bg: #fdecea; --ok: #2f8f5f;
+  --chip: #f1e8d9; --radius: 18px;
+  --shadow: 0 1px 2px rgba(32,26,20,0.04), 0 8px 24px rgba(32,26,20,0.07);
+  --shadow-sm: 0 1px 2px rgba(32,26,20,0.05);
+  --font: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+:root:not([data-theme="light"]) {
+  @media (prefers-color-scheme: dark) {
+    --bg: #14100b; --card: #211a13; --ink: #f5ede2; --ink-soft: #b5a897;
+    --accent: #ff8a52; --accent-2: #ffab73; --accent-ink: #17110a;
+    --line: #372c20; --low: #ff6f5e; --low-bg: #3a2019; --ok: #6fce93;
+    --chip: #2a2118; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.4);
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14100b; --card: #211a13; --ink: #f5ede2; --ink-soft: #b5a897;
+  --accent: #ff8a52; --accent-2: #ffab73; --accent-ink: #17110a;
+  --line: #372c20; --low: #ff6f5e; --low-bg: #3a2019; --ok: #6fce93;
+  --chip: #2a2118; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.4);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+}
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--font); -webkit-font-smoothing:antialiased; padding-bottom:48px; letter-spacing:-0.01em; }
+.container { max-width:720px; margin:0 auto; padding:18px; }
+header.top { position:sticky; top:0; z-index:20; background:color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter:blur(10px); padding:16px 18px 12px; border-bottom:1px solid var(--line); }
+h1 { font-size:1.15rem; margin:0 0 3px; font-weight:800; letter-spacing:-0.02em; }
+.sub { color:var(--ink-soft); font-size:0.83rem; margin:0; line-height:1.4; }
+.back-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.back-btn { background:none; border:none; color:var(--accent); font-size:0.92rem; padding:6px 0; cursor:pointer; font-weight:700; transition:opacity .15s; }
+.back-btn:active { opacity:0.6; }
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px; }
+.dept-card { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow-sm); border:1px solid var(--line); padding:18px 16px; text-align:left; cursor:pointer; display:flex; flex-direction:column; gap:8px; transition:transform .12s, box-shadow .12s; }
+.dept-card:active { transform:scale(0.97); box-shadow:var(--shadow-sm); }
+.dept-card .emoji { width:40px; height:40px; border-radius:12px; background:var(--chip); display:flex; align-items:center; justify-content:center; font-size:1.3rem; }
+.dept-card .outlet { font-weight:700; font-size:0.94rem; margin-top:2px; }
+.dept-card .dept { color:var(--ink-soft); font-size:0.78rem; }
+.wide-card { grid-column:1/-1; border-radius:var(--radius); padding:18px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; box-shadow:var(--shadow); border:none; transition:transform .12s; }
+.wide-card:active { transform:scale(0.98); }
+.summary-card { background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:var(--accent-ink); }
+.directory-card { background:var(--chip); color:var(--ink); border:1px solid var(--line); box-shadow:none; }
+.wide-card .t { font-weight:800; font-size:1rem; }
+.wide-card .s { font-size:0.78rem; opacity:0.85; margin-top:2px; }
+.search-wrap { margin-top:14px; }
+input[type="text"].search { width:100%; padding:11px 14px; border-radius:12px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:0.9rem; font-family:var(--font); transition:border-color .15s, box-shadow .15s; }
+input[type="text"].search:focus, input[type="date"]:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+.pic-row { display:flex; gap:8px; margin-top:12px; }
+.pic-row input { flex:1; padding:10px 12px; border-radius:12px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:0.85rem; font-family:var(--font); }
+input[type="date"] { padding:10px 12px; border-radius:12px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:0.85rem; font-family:var(--font); width:100%; }
+.supplier-group { margin-top:18px; }
+.supplier-title { font-size:0.74rem; text-transform:uppercase; letter-spacing:0.5px; color:var(--ink-soft); font-weight:700; margin:0 0 8px 2px; display:flex; align-items:center; gap:6px; cursor:pointer; padding:12px; border-radius:14px; user-select:none; background:var(--chip); transition:opacity .15s; }
+.supplier-title:active { opacity:0.75; }
+.supplier-title .chev { margin-left:auto; font-size:0.7rem; transition:transform 0.18s; color:var(--ink-soft); }
+.supplier-title.open .chev { transform:rotate(90deg); }
+.supplier-title .count { background:var(--card); border-radius:20px; padding:2px 9px; font-size:0.68rem; box-shadow:var(--shadow-sm); }
+.item-card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 14px; margin-bottom:8px; box-shadow:var(--shadow-sm); transition:border-color .15s; }
+.item-card.filled { border-color:var(--accent); box-shadow:0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent); }
+.item-name { font-weight:700; font-size:0.89rem; letter-spacing:-0.01em; }
+.item-name-input { font-weight:700; font-size:0.89rem; letter-spacing:-0.01em; width:100%; border:none; background:none; color:var(--ink); font-family:var(--font); padding:2px 0; border-bottom:1px dashed transparent; }
+.item-name-input:focus { outline:none; border-bottom-color:var(--accent); }
+.item-meta { color:var(--ink-soft); font-size:0.72rem; margin-top:2px; }
+.item-inputs { display:flex; gap:8px; margin-top:10px; }
+.field { flex:1; }
+.field label { display:block; font-size:0.63rem; color:var(--ink-soft); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px; font-weight:600; }
+.field input { width:100%; padding:9px 10px; border-radius:10px; border:1px solid var(--line); background:var(--bg); color:var(--ink); font-size:0.88rem; font-family:var(--font); transition:border-color .15s; }
+.field input:focus { outline:none; border-color:var(--accent); }
+.field.status input { font-size:0.8rem; }
+.item-card.low .field.current input { border-color:var(--low); background:var(--low-bg); }
+.adhoc-box { margin-top:20px; border-top:1px dashed var(--line); padding-top:16px; }
+.adhoc-row { display:flex; gap:6px; margin-bottom:8px; }
+.adhoc-row input { flex:1; padding:9px 10px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:0.82rem; font-family:var(--font); }
+.adhoc-row input.name { flex:2; }
+.add-adhoc-btn, .del-adhoc-btn { border:1px dashed var(--line); background:none; color:var(--ink-soft); border-radius:10px; padding:9px 12px; font-size:0.8rem; cursor:pointer; font-family:var(--font); }
+.del-adhoc-btn { border:none; color:var(--low); font-size:1rem; padding:4px 8px; }
+.save-bar { position:sticky; bottom:0; background:linear-gradient(to top, var(--bg) 70%, transparent); padding:18px 0 6px; margin-top:20px; }
+.save-btn { width:100%; background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:var(--accent-ink); border:none; padding:16px; border-radius:16px; font-size:0.95rem; font-weight:800; cursor:pointer; box-shadow:0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent); font-family:var(--font); transition:transform .1s; }
+.save-btn:active { transform:scale(0.98); }
+.save-btn:disabled { opacity:0.6; box-shadow:none; }
+.status-msg { text-align:center; font-size:0.8rem; margin-top:10px; color:var(--ink-soft); font-weight:500; }
+.status-msg.ok { color:var(--ok); }
+.status-msg.err { color:var(--low); }
+.empty { text-align:center; color:var(--ink-soft); padding:40px 16px; font-size:0.85rem; line-height:1.6; }
+.outlet-block { background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:16px; margin-top:16px; box-shadow:var(--shadow); }
+.outlet-block h2 { margin:0 0 10px; font-size:1.05rem; font-weight:800; }
+.sup-title { font-size:0.78rem; font-weight:700; margin:14px 0 6px; display:flex; align-items:center; gap:4px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.4px; }
+.item-line { font-size:0.87rem; padding:4px 0; display:flex; gap:6px; line-height:1.4; }
+.item-line .bullet { color:var(--accent); font-weight:700; }
+.item-line.flag { color:var(--low); }
+.copy-btn, .wa-btn { border:1px solid var(--line); background:var(--chip); color:var(--ink); border-radius:12px; padding:9px 14px; font-size:0.78rem; cursor:pointer; margin-top:14px; margin-right:8px; font-weight:600; font-family:var(--font); transition:transform .1s; }
+.copy-btn:active, .wa-btn:active { transform:scale(0.96); }
+.wa-btn { background:#25d366; color:#04371f; border:none; font-weight:700; text-decoration:none; display:inline-block; }
+.dir-outlet-tabs { display:flex; gap:8px; margin-top:12px; overflow-x:auto; padding-bottom:2px; }
+.dir-tab { flex:none; padding:9px 16px; border-radius:20px; border:1px solid var(--line); background:var(--card); color:var(--ink-soft); font-size:0.8rem; cursor:pointer; white-space:nowrap; font-weight:600; font-family:var(--font); transition:background .15s; }
+.dir-tab.active { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); font-weight:700; }
+.dir-row { display:flex; align-items:center; gap:8px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px 12px; margin-bottom:6px; box-shadow:var(--shadow-sm); }
+.dir-row .dname { flex:1; font-size:0.83rem; }
+.dir-row input { width:130px; padding:8px 10px; border-radius:9px; border:1px solid var(--line); background:var(--bg); color:var(--ink); font-size:0.8rem; font-family:var(--font); }
+.item-card input.unresolved { border-color:var(--low); background:var(--low-bg); }
+.dir-save-hint { font-size:0.68rem; color:var(--ink-soft); text-align:right; margin-top:-2px; margin-bottom:8px; min-height:14px; font-weight:600; }
+.add-dir-box { margin-top:18px; border-top:1px dashed var(--line); padding-top:16px; }
+.add-dir-row { display:flex; gap:6px; }
+.add-dir-row input { flex:1; padding:9px 10px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:0.82rem; font-family:var(--font); }
+.add-dir-btn { background:var(--accent); color:var(--accent-ink); border:none; border-radius:10px; padding:9px 16px; font-size:0.8rem; font-weight:700; cursor:pointer; font-family:var(--font); }
+.last-updated { font-size:0.72rem; color:var(--ink-soft); margin-top:4px; font-weight:500; }
+.banner { background:var(--chip); border-radius:12px; padding:12px 14px; font-size:0.78rem; color:var(--ink-soft); margin-top:12px; line-height:1.5; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBBjgejBphbm7AhTytm7oMUatqi7AeUo-w",
+  authDomain: "ek-procurement.firebaseapp.com",
+  projectId: "ek-procurement",
+  storageBucket: "ek-procurement.firebasestorage.app",
+  messagingSenderId: "879366625859",
+  appId: "1:879366625859:web:a395a246f173dbf72712f6"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const DEPTS = [{"key": "central_kitchen", "outlet": "CENTRAL KITCHEN", "dept": "CENTRAL KITCHEN", "emoji": "🏭"}, {"key": "kitchen_cheras", "outlet": "CHERAS", "dept": "KITCHEN", "emoji": "🍳"}, {"key": "kitchen_merab", "outlet": "SUNGAI MERAB", "dept": "KITCHEN", "emoji": "🍳"}, {"key": "floor_cheras", "outlet": "CHERAS", "dept": "FLOOR / BAR & COFFEE", "emoji": "🥤"}, {"key": "floor_merab", "outlet": "SUNGAI MERAB", "dept": "FLOOR / BAR & COFFEE", "emoji": "🥤"}];
+const ITEM_DATA = {"central_kitchen": [{"id": "AYAM BB", "name": "AYAM BB", "minimum": "-", "unit": "CTN", "cat": "FROZEN"}, {"id": "AYAM BB POTONG CUBE 1 INCI", "name": "AYAM BB POTONG CUBE 1 INCI", "minimum": "-", "unit": "KG", "cat": "FROZEN"}, {"id": "AYAM DARA POTONG 4", "name": "AYAM DARA POTONG 4", "minimum": "-", "unit": "EKOR", "cat": "FROZEN"}, {"id": "CHICKEN WING S", "name": "CHICKEN WING S", "minimum": "-", "unit": "KG", "cat": "FROZEN"}, {"id": "CHICKEN FILLET", "name": "CHICKEN FILLET", "minimum": "-", "unit": "CTN", "cat": "FROZEN"}, {"id": "DAGING KISAR SRI TERNAK", "name": "DAGING KISAR SRI TERNAK", "minimum": "-", "unit": "KG", "cat": "FROZEN"}, {"id": "TOMATO PUREE DUCHEFF", "name": "TOMATO PUREE DUCHEFF", "minimum": "-", "unit": "CTN", "cat": "KERING"}, {"id": "HONEY 1KG", "name": "HONEY 1KG", "minimum": "-", "unit": "CTN", "cat": "KERING"}, {"id": "SWISS BEAR SPICY SAUCE", "name": "SWISS BEAR SPICY SAUCE", "minimum": "-", "unit": "CTN", "cat": "KERING"}, {"id": "SWISS BEAR CHEESE SAUCE", "name": "SWISS BEAR CHEESE SAUCE", "minimum": "-", "unit": "CTN", "cat": "KERING"}, {"id": "SUSU FULL CREAM", "name": "SUSU FULL CREAM", "minimum": "-", "unit": "CTN", "cat": "CHILLED"}, {"id": "SUSU CAIR", "name": "SUSU CAIR", "minimum": "-", "unit": "CTN", "cat": "KERING"}, {"id": "COOKING CREAM", "name": "COOKING CREAM", "minimum": "-", "unit": "L", "cat": "CHILLED"}, {"id": "CHEESE POWDER", "name": "CHEESE POWDER", "minimum": "-", "unit": "CTN", "cat": "KERING"}, {"id": "SPAGHETTI KIMBALL", "name": "SPAGHETTI KIMBALL", "minimum": "-", "unit": "CTN", "cat": "KERING"}, {"id": "SAN REMO ELBOW MACARONI", "name": "SAN REMO ELBOW MACARONI", "minimum": "-", "unit": "CTN", "cat": "KERING"}, {"id": "MINYAK MASAK MURAH", "name": "MINYAK MASAK MURAH", "minimum": "-", "unit": "CTN", "cat": "KERING"}, {"id": "SANTAN KARA 1L", "name": "SANTAN KARA 1L", "minimum": "-", "unit": "UNIT", "cat": "KERING"}, {"id": "CHICKEN STOCK", "name": "CHICKEN STOCK", "minimum": "-", "unit": "KG", "cat": "FROZEN"}, {"id": "CHICKEN STOCK CONCENTRATED", "name": "CHICKEN STOCK CONCENTRATED", "minimum": "-", "unit": "BTL", "cat": "KERING"}, {"id": "GARAM BIASA", "name": "GARAM BIASA", "minimum": "-", "unit": "KG", "cat": "KERING"}, {"id": "SERBUK CILI", "name": "SERBUK CILI", "minimum": "-", "unit": "KG", "cat": "KERING"}, {"id": "SERBUK KARI IKAN BABAS", "name": "SERBUK KARI IKAN BABAS", "minimum": "-", "unit": "KG", "cat": "KERING"}, {"id": "SERBUK WHITE PEPPER CAP KAPAL", "name": "SERBUK WHITE PEPPER CAP KAPAL", "minimum": "-", "unit": "KG", "cat": "KERING"}, {"id": "CAJUN", "name": "CAJUN", "minimum": "-", "unit": "KG", "cat": "KERING"}, {"id": "DEMI GLAZE", "name": "DEMI GLAZE", "minimum": "-", "unit": "KG", "cat": "FROZEN"}, {"id": "YELLOW MUSTARD", "name": "YELLOW MUSTARD", "minimum": "-", "unit": "CTN", "cat": "KERING"}, {"id": "MAYONNAISE LONGSON 3KG", "name": "MAYONNAISE LONGSON 3KG", "minimum": "-", "unit": "CTN", "cat": "CHILLED"}, {"id": "KICAP IKAN PUTERI", "name": "KICAP IKAN PUTERI", "minimum": "-", "unit": "CTN", "cat": "KERING"}, {"id": "KICAP CAIR PUTERI", "name": "KICAP CAIR PUTERI", "minimum": "-", "unit": "BTL", "cat": "KERING"}, {"id": "KICAP PEKAT PUTERI", "name": "KICAP PEKAT PUTERI", "minimum": "-", "unit": "BTL", "cat": "KERING"}, {"id": "CUKA", "name": "CUKA", "minimum": "-", "unit": "BTL", "cat": "KERING"}, {"id": "AIR LIMAU", "name": "AIR LIMAU", "minimum": "-", "unit": "BTL", "cat": "KERING"}, {"id": "BAWANG MERAH", "name": "BAWANG MERAH", "minimum": "-", "unit": "KG", "cat": "CHILLED"}, {"id": "BAWANG PUTIH", "name": "BAWANG PUTIH", "minimum": "-", "unit": "KG", "cat": "CHILLED"}, {"id": "CILI MERAH", "name": "CILI MERAH", "minimum": "-", "unit": "KG", "cat": "CHILLED"}, {"id": "CILI HIJAU", "name": "CILI HIJAU", "minimum": "-", "unit": "KG", "cat": "CHILLED"}, {"id": "CILI PADI MERAH", "name": "CILI PADI MERAH", "minimum": "-", "unit": "KG", "cat": "CHILLED"}, {"id": "CILI PADI HIJAU", "name": "CILI PADI HIJAU", "minimum": "-", "unit": "KG", "cat": "CHILLED"}, {"id": "CILI YITU", "name": "CILI YITU", "minimum": "-", "unit": "KG", "cat": "CHILLED"}, {"id": "CILI KERINTING PEDAS", "name": "CILI KERINTING PEDAS", "minimum": "-", "unit": "KG", "cat": "CHILLED"}, {"id": "HALIA", "name": "HALIA", "minimum": "-", "unit": "KG", "cat": "CHILLED"}, {"id": "SERAI", "name": "SERAI", "minimum": "-", "unit": "IKAT", "cat": "CHILLED"}, {"id": "DAUN KETUMBAR", "name": "DAUN KETUMBAR", "minimum": "-", "unit": "IKAT", "cat": "CHILLED"}, {"id": "LEMON", "name": "LEMON", "minimum": "-", "unit": "BIJI", "cat": "CHILLED"}, {"id": "YOGURT 1 4KG", "name": "YOGURT 1.4KG", "minimum": "-", "unit": "BTL", "cat": "CHILLED"}, {"id": "TELUR MASIN", "name": "TELUR MASIN", "minimum": "-", "unit": "BIJI", "cat": "KERING"}, {"id": "IKAN BILIS MURAH", "name": "IKAN BILIS MURAH", "minimum": "-", "unit": "KG", "cat": "KERING"}, {"id": "UDANG GERAGAU", "name": "UDANG GERAGAU", "minimum": "-", "unit": "KG", "cat": "FROZEN"}, {"id": "SHITAKE MUSHROOM", "name": "SHITAKE MUSHROOM", "minimum": "-", "unit": "KG", "cat": "KERING"}, {"id": "VPLUS", "name": "VPLUS", "minimum": "-", "unit": "KG", "cat": "KERING"}, {"id": "SOTONG LAMBAK", "name": "SOTONG LAMBAK", "minimum": "-", "unit": "KG", "cat": "FROZEN"}, {"id": "SOTONG XL", "name": "SOTONG XL", "minimum": "-", "unit": "CTN", "cat": "FROZEN"}, {"id": "KETAM", "name": "KETAM", "minimum": "-", "unit": "CTN", "cat": "FROZEN"}, {"id": "LALA", "name": "LALA", "minimum": "-", "unit": "CTN", "cat": "FROZEN"}, {"id": "KUPANG", "name": "KUPANG", "minimum": "-", "unit": "KG", "cat": "FROZEN"}, {"id": "UDANG", "name": "UDANG", "minimum": "-", "unit": "KG", "cat": "FROZEN"}, {"id": "IKAN TALAPIA", "name": "IKAN TALAPIA", "minimum": "-", "unit": "EKOR", "cat": "FROZEN"}, {"id": "IKAN KEMBUNG", "name": "IKAN KEMBUNG", "minimum": "-", "unit": "EKOR", "cat": "FROZEN"}, {"id": "BEKAS MUSHROOM", "name": "BEKAS MUSHROOM", "minimum": "-", "unit": "PKT", "cat": "BEKALAN"}, {"id": "KICAP ABC 5L", "name": "KICAP ABC 5L", "minimum": "1 TONG", "unit": "TONG", "cat": "KERING"}, {"id": "BELACAN", "name": "BELACAN", "minimum": "1 BLOCK", "unit": "BLOCK", "cat": "KERING"}, {"id": "DRY OREGANO", "name": "DRY OREGANO", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "DRY THYME", "name": "DRY THYME", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "DRY ROSEMARY", "name": "DRY ROSEMARY", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "ASAM KEPING", "name": "ASAM KEPING", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "BIJI KETUMBAR", "name": "BIJI KETUMBAR", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "JINTAN MANIS", "name": "JINTAN MANIS", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "JINTAN PUTIH", "name": "JINTAN PUTIH", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "BUAH KERAS", "name": "BUAH KERAS", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "DAUN BAY", "name": "DAUN BAY", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "LADA HITAM", "name": "LADA HITAM", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "WHITE BREAD CRUMBS", "name": "WHITE BREAD CRUMBS", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "MARJERIN CHOICE", "name": "MARJERIN CHOICE", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "LENGKUAS", "name": "LENGKUAS", "minimum": "1 KG", "unit": "KG", "cat": "CHILLED"}, {"id": "KUNYIT HIDUP", "name": "KUNYIT HIDUP", "minimum": "1 KG", "unit": "KG", "cat": "CHILLED"}, {"id": "PLASTIC HM6X9", "name": "PLASTIC HM6X9", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "PLASTIC HM8X12", "name": "PLASTIC HM8X12", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "PLASTIC SAMPAH HITAM TEBAL XXL", "name": "PLASTIC SAMPAH HITAM TEBAL XXL", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "SABUN HIJAU", "name": "SABUN HIJAU", "minimum": "1 TONG", "unit": "TONG", "cat": "BEKALAN"}, {"id": "PLASTIC VACUUM 9X14", "name": "PLASTIC VACUUM 9X14", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "PLASTIC VACUUM 10X16", "name": "PLASTIC VACUUM 10X16", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "COCHUJANG", "name": "COCHUJANG", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}], "kitchen_cheras": [{"id": "BEKAS NASI", "name": "BEKAS NASI", "minimum": "10 PCS", "unit": "PCS", "cat": "BEKALAN"}, {"id": "BEKAS SAMBAL MAKAN", "name": "BEKAS SAMBAL MAKAN", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "MAC N CHEESE BOWL", "name": "MAC N CHEESE BOWL", "minimum": "20 PCS", "unit": "PCS", "cat": "BEKALAN"}, {"id": "MUSHROOM SOUP BOWL", "name": "MUSHROOM SOUP BOWL", "minimum": "10 PCS", "unit": "PCS", "cat": "BEKALAN"}, {"id": "SQ7", "name": "SQ7 (SHELLOUT 3-4)", "minimum": "10 PCS", "unit": "PCS", "cat": "BEKALAN"}, {"id": "TNZ900", "name": "TNZ900 (ALA CARTE)", "minimum": "10 PCS", "unit": "PCS", "cat": "BEKALAN"}, {"id": "ROTI BAGUETTE", "name": "ROTI BAGUETTE", "minimum": "5 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "SHOESTRING FRIES STARMAX", "name": "SHOESTRING FRIES STARMAX", "minimum": "1 CTN", "unit": "CTN", "cat": "FROZEN"}, {"id": "LAMB SLICE", "name": "LAMB SLICE", "minimum": "6 KG", "unit": "KG", "cat": "FROZEN"}, {"id": "NACHOS CHIP", "name": "NACHOS CHIP", "minimum": "1 CTN", "unit": "CTN", "cat": "FROZEN"}, {"id": "TOMATO CIAO", "name": "TOMATO CIAO", "minimum": "1 CTN", "unit": "CTN", "cat": "KERING"}, {"id": "TONG SAMPAH HIJAU WITH LID", "name": "TONG SAMPAH HIJAU WITH LID", "minimum": "-", "unit": "UNIT", "cat": "BEKALAN"}, {"id": "UDANG", "name": "UDANG", "minimum": "2 KG", "unit": "KG", "cat": "FROZEN"}, {"id": "PETAI", "name": "PETAI", "minimum": "1 IKAT", "unit": "IKAT", "cat": "CHILLED"}, {"id": "ALUMINIUM FOIL CRYSTALWRAP", "name": "ALUMINIUM FOIL CRYSTALWRAP", "minimum": "1 KTK", "unit": "KTK", "cat": "KERING"}, {"id": "BBQ SAUCE", "name": "BBQ SAUCE", "minimum": "2 TUB", "unit": "TUB", "cat": "CHILLED"}, {"id": "BEBOLA IKAN AAA PUTIH", "name": "BEBOLA IKAN AAA PUTIH", "minimum": "3 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "BEEF BREAKFAST HENNEIE", "name": "BEEF BREAKFAST HENNEIE", "minimum": "3 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "BEEF PEPPERONI", "name": "BEEF PEPPERONI", "minimum": "2 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "BERAS PUTIH", "name": "BERAS PUTIH", "minimum": "40 KG", "unit": "KG", "cat": "KERING"}, {"id": "BLACK PEPPER BIJI", "name": "BLACK PEPPER BIJI", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "BROKOLI", "name": "BROKOLI", "minimum": "10 BIJI", "unit": "BIJI", "cat": "CHILLED"}, {"id": "BUNA SHIMEJI MUSHROOM", "name": "BUNA SHIMEJI MUSHROOM", "minimum": "6 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "BUTTERCUP", "name": "BUTTERCUP", "minimum": "3 PKT", "unit": "BLOK / PKT", "cat": "CHILLED"}, {"id": "CAPSICUM HIJAU", "name": "CAPSICUM HIJAU", "minimum": "3 BIJI", "unit": "BIJI", "cat": "CHILLED"}, {"id": "CAPSICUM MERAH", "name": "CAPSICUM MERAH", "minimum": "3 BIJI", "unit": "BIJI", "cat": "CHILLED"}, {"id": "CARROT", "name": "CARROT", "minimum": "20 BIJI / ½ CTN", "unit": "CTN", "cat": "CHILLED"}, {"id": "CAULIFLOWER", "name": "CAULIFLOWER", "minimum": "5 BIJI", "unit": "BIJI", "cat": "CHILLED"}, {"id": "CELERY", "name": "CELERY", "minimum": "½ KG", "unit": "KG", "cat": "CHILLED"}, {"id": "CHERRY TOMATO", "name": "CHERRY TOMATO", "minimum": "½ TUB / 1 KG", "unit": "KG", "cat": "CHILLED"}, {"id": "CHICKEN CHOP 10", "name": "CHICKEN CHOP 10", "minimum": "1 TUB + 1 CTN", "unit": "CTN", "cat": "FROZEN"}, {"id": "CHICKEN SLICE FIGO", "name": "CHICKEN SLICE FIGO", "minimum": "3 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "CHICKEN STOCK MAGGI", "name": "CHICKEN STOCK MAGGI", "minimum": "2 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "CHILI FLAKES", "name": "CHILI FLAKES", "minimum": "½ PKT", "unit": "PKT", "cat": "KERING"}, {"id": "CHILI FLAKES THAI", "name": "CHILI FLAKES THAI", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "CILI PADI MERAH", "name": "CILI PADI MERAH", "minimum": "200 G", "unit": "KG", "cat": "CHILLED"}, {"id": "CLING WRAP 450", "name": "CLING WRAP 450", "minimum": "1 KTK", "unit": "KTK", "cat": "KERING"}, {"id": "COMBI CHEMICAL", "name": "COMBI CHEMICAL", "minimum": "1 BTL", "unit": "BTL", "cat": "BEKALAN"}, {"id": "COOKING CREAM GLF", "name": "COOKING CREAM GLF", "minimum": "6 UNIT", "unit": "UNIT", "cat": "CHILLED"}, {"id": "CURLY FRIES SAVOURY LOOPS", "name": "CURLY FRIES SAVOURY LOOPS", "minimum": "5 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "DAISY MARGARINE 4 8KG", "name": "DAISY MARGARINE 4.8KG", "minimum": "1 TUB", "unit": "TUB", "cat": "KERING"}, {"id": "DAUN KARI", "name": "DAUN KARI", "minimum": "½ PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "DAUN KUNYIT", "name": "DAUN KUNYIT", "minimum": "½ PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "DAUN LIMAU", "name": "DAUN LIMAU", "minimum": "½ PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "DEMI GLAZE KNORR", "name": "DEMI GLAZE KNORR", "minimum": "2 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "EMBORG CHEDDAR CHEESE 84 SLICE", "name": "EMBORG CHEDDAR CHEESE 84 SLICE", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "FISH CAKE", "name": "FISH CAKE", "minimum": "2 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "GARAM", "name": "GARAM", "minimum": "1 KG", "unit": "KG", "cat": "KERING"}, {"id": "GARLIC", "name": "GARLIC", "minimum": "1 KG", "unit": "PKT", "cat": "CHILLED"}, {"id": "GREEN CORAL", "name": "GREEN CORAL", "minimum": "5 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "HASHBROWN", "name": "HASHBROWN", "minimum": "1 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "ISI KERANG BESAR", "name": "ISI KERANG BESAR", "minimum": "1 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "JAGUNG KERNEL TIN", "name": "JAGUNG KERNEL TIN", "minimum": "3 TIN", "unit": "TIN", "cat": "KERING"}, {"id": "JAGUNG TONGKOL", "name": "JAGUNG TONGKOL", "minimum": "50 PCS / 5 PKT", "unit": "BIJI", "cat": "KERING"}, {"id": "KACANG PANJANG", "name": "KACANG PANJANG", "minimum": "2 IKAT / 1 KG", "unit": "IKAT", "cat": "CHILLED"}, {"id": "KANGKUNG", "name": "KANGKUNG", "minimum": "1 IKAT", "unit": "IKAT", "cat": "CHILLED"}, {"id": "KEROPOK MONI", "name": "KEROPOK MONI", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "KNORR SALTED EGG", "name": "KNORR SALTED EGG", "minimum": "½ PKT", "unit": "PKT", "cat": "KERING"}, {"id": "KOBIS BULAT", "name": "KOBIS BULAT", "minimum": "3 BIJI", "unit": "BIJI", "cat": "CHILLED"}, {"id": "KOBIS UNGU", "name": "KOBIS UNGU", "minimum": "2 BIJI", "unit": "BIJI", "cat": "CHILLED"}, {"id": "KUCAI", "name": "KUCAI", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "LAPIK MERAH PUTIH", "name": "LAPIK MERAH PUTIH", "minimum": "5 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "MAEPRANOM CILI SAUCE", "name": "MAEPRANOM CILI SAUCE", "minimum": "1 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "MARGARINE CHOICE", "name": "MARGARINE CHOICE", "minimum": "3 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "MEATBALL RAMLY", "name": "MEATBALL RAMLY", "minimum": "6 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "MINYAK MASAK MURAH", "name": "MINYAK MASAK MURAH", "minimum": "1 CTN", "unit": "CTN", "cat": "KERING"}, {"id": "MIXED HERBS", "name": "MIXED HERBS", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "MOZZARELLA FESTINO 2KG", "name": "MOZZARELLA FESTINO 2KG", "minimum": "2 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "NENAS TIN SLICE", "name": "NENAS TIN SLICE", "minimum": "2 TIN", "unit": "TIN", "cat": "KERING"}, {"id": "OREGANO", "name": "OREGANO", "minimum": "½ PKT", "unit": "PKT", "cat": "KERING"}, {"id": "PARMESAN CHEESE GUD", "name": "PARMESAN CHEESE GUD", "minimum": "½ PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "PARSLEY", "name": "PARSLEY", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "PICKLE GHERKINS", "name": "PICKLE GHERKINS", "minimum": "1 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "PLASTIK 12X12", "name": "PLASTIK 12X12", "minimum": "½ PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "PLASTIK 6X9", "name": "PLASTIK 6X9", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "RAMLY NUGGET TEMPURA", "name": "RAMLY NUGGET TEMPURA", "minimum": "5 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "SABUN HIJAU", "name": "SABUN HIJAU", "minimum": "2 TONG", "unit": "TONG", "cat": "BEKALAN"}, {"id": "SABUN PINK", "name": "SABUN PINK (MULTIPURPOSE)", "minimum": "1 BTL", "unit": "BTL", "cat": "BEKALAN"}, {"id": "SABUN SERBUK", "name": "SABUN SERBUK", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "SAN REMO ELBOW MACARONI", "name": "SAN REMO ELBOW MACARONI", "minimum": "1 CTN", "unit": "CTN", "cat": "KERING"}, {"id": "SAUSAGE", "name": "SAUSAGE (PERTIWI / SMOKEY)", "minimum": "20 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "SAWI", "name": "SAWI", "minimum": "1 IKAT", "unit": "IKAT", "cat": "CHILLED"}, {"id": "SEEDED BUN 5 INCH", "name": "SEEDED BUN 5 INCH", "minimum": "6 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "SESAME SEED", "name": "SESAME SEED", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "SHAKER BBQ", "name": "SHAKER BBQ", "minimum": "3 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "SHAKER CHEESE", "name": "SHAKER CHEESE", "minimum": "3 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "SHAKER HOT SPICY", "name": "SHAKER HOT & SPICY", "minimum": "3 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "SPAGHETTI KIMBALL", "name": "SPAGHETTI KIMBALL", "minimum": "2 CTN", "unit": "CTN", "cat": "KERING"}, {"id": "SUSU FULL CREAM", "name": "SUSU FULL CREAM", "minimum": "1 CTN", "unit": "CTN", "cat": "KERING"}, {"id": "SWISS BEAR TARTAR SAUCE", "name": "SWISS BEAR TARTAR SAUCE", "minimum": "2 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "TAUHU KERAS", "name": "TAUHU KERAS", "minimum": "30 PCS / 3 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "TELUR AYAM", "name": "TELUR AYAM", "minimum": "3 PPN", "unit": "PAPAN", "cat": "KERING"}, {"id": "TEMPE", "name": "TEMPE", "minimum": "6 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "TEPUNG BERAS CAP GAJAH", "name": "TEPUNG BERAS CAP GAJAH", "minimum": "3 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "TEPUNG BESTARI PEDAS", "name": "TEPUNG BESTARI PEDAS", "minimum": "2 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "TEPUNG GANDUM", "name": "TEPUNG GANDUM", "minimum": "2 CTN", "unit": "CTN", "cat": "KERING"}, {"id": "TEPUNG JAGUNG", "name": "TEPUNG JAGUNG", "minimum": "1 CTN", "unit": "CTN", "cat": "KERING"}, {"id": "TEPUNG UBI KAYU", "name": "TEPUNG UBI KAYU", "minimum": "½ CTN", "unit": "CTN", "cat": "KERING"}, {"id": "THOUSAND ISLAND", "name": "THOUSAND ISLAND", "minimum": "2 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "TIMUN JEPUN", "name": "TIMUN JEPUN", "minimum": "8 BATANG", "unit": "BATANG", "cat": "CHILLED"}, {"id": "TOMATO", "name": "TOMATO", "minimum": "8 BIJI / 1 KG", "unit": "BIJI", "cat": "CHILLED"}, {"id": "WEDGES SPICY", "name": "WEDGES SPICY", "minimum": "3 PKT", "unit": "CTN / PKT", "cat": "FROZEN"}, {"id": "SOTONG XL", "name": "SOTONG XL", "minimum": "1 CTN", "unit": "CTN", "cat": "FROZEN"}, {"id": "OLIVE OIL 5L", "name": "OLIVE OIL 5L", "minimum": "1 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "TEPUNG KENTANG", "name": "TEPUNG KENTANG", "minimum": "4 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "AYAM BB POTONG CUBE 1 INCI", "name": "AYAM BB POTONG CUBE 1 INCI", "minimum": "40 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "BABY CHICKEN POTONG 4", "name": "BABY CHICKEN POTONG 4", "minimum": "2 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "CHICKEN WING S", "name": "CHICKEN WING S", "minimum": "40 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "HONEY MUSTARD", "name": "HONEY MUSTARD", "minimum": "2 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "KUAH BLACKPEPPER", "name": "KUAH BLACKPEPPER", "minimum": "3 TUB", "unit": "TUB", "cat": "CHILLED"}, {"id": "KUAH BOLOGNESE", "name": "KUAH BOLOGNESE", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "KUAH BUTTERMILK", "name": "KUAH BUTTERMILK", "minimum": "1 TUB", "unit": "TUB", "cat": "CHILLED"}, {"id": "KUAH SHELLOUT", "name": "KUAH SHELLOUT", "minimum": "2 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "MUSHROOM SOUP", "name": "MUSHROOM SOUP", "minimum": "½ TUB", "unit": "TUB", "cat": "CHILLED"}, {"id": "PATTY", "name": "PATTY", "minimum": "100 PCS", "unit": "PCS", "cat": "FROZEN"}, {"id": "PES MASAK LEMAK", "name": "PES MASAK LEMAK", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "SAMBAL KICAP", "name": "SAMBAL KICAP", "minimum": "½ TUB", "unit": "TUB", "cat": "CHILLED"}, {"id": "SAMBAL TERASI", "name": "SAMBAL TERASI", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "SHELLOUT SEAFOOD", "name": "SHELLOUT SEAFOOD", "minimum": "50 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "SOS CHEESE MACCARONI", "name": "SOS CHEESE MACCARONI", "minimum": "2 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "BASIL", "name": "BASIL", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "BASSO POMACE OLIVE OIL 5L", "name": "BASSO POMACE OLIVE OIL 5L", "minimum": "1 BOTOL", "unit": "TIN", "cat": "KERING"}, {"id": "BAWANG HOLLAND", "name": "BAWANG HOLLAND", "minimum": "1 GUNI", "unit": "GUNI", "cat": "CHILLED"}, {"id": "BEEF SALAMI", "name": "BEEF SALAMI", "minimum": "1 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "BEKAS SUP MAKAN", "name": "BEKAS SUP MAKAN", "minimum": "2 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "BEKAS TAKEAWAY SAMBAL", "name": "BEKAS TAKEAWAY SAMBAL", "minimum": "2 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "BEKAS TAKEAWAY SUP", "name": "BEKAS TAKEAWAY SUP", "minimum": "2 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "BROWN BOX", "name": "BROWN BOX", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "CHICKEN PEPPERONI", "name": "CHICKEN PEPPERONI", "minimum": "2 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "DAGING KISAR", "name": "DAGING KISAR", "minimum": "1 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "DAUN BAWANG", "name": "DAUN BAWANG", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "DAUN SELOM", "name": "DAUN SELOM", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "FRESH PARSLEY", "name": "FRESH PARSLEY", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "GANGNAM BITES", "name": "GANGNAM BITES", "minimum": "10 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "HALIA", "name": "HALIA", "minimum": "2 BIJI", "unit": "BIJI", "cat": "CHILLED"}, {"id": "HONEY", "name": "HONEY", "minimum": "1 TUB", "unit": "TUB", "cat": "KERING"}, {"id": "IKAN BILIS", "name": "IKAN BILIS", "minimum": "1 TUB", "unit": "TUB", "cat": "KERING"}, {"id": "IKAN TALAPIA", "name": "IKAN TALAPIA", "minimum": "5 EKOR", "unit": "EKOR", "cat": "FROZEN"}, {"id": "KACANG GAJUS", "name": "KACANG GAJUS", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "KEROPOK IKAN", "name": "KEROPOK IKAN", "minimum": "2 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "KUEY TEOW WIN", "name": "KUEY TEOW WIN", "minimum": "2 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "MINYAK BIJAN", "name": "MINYAK BIJAN", "minimum": "1 BOTOL", "unit": "BOTOL", "cat": "KERING"}, {"id": "ONION RING", "name": "ONION RING", "minimum": "2 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "PES TOMYAM", "name": "PES TOMYAM", "minimum": "2 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "ROCKET SALAD", "name": "ROCKET SALAD", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "SERBUK KUNYIT", "name": "SERBUK KUNYIT", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "SOS PIZZA", "name": "SOS PIZZA", "minimum": "1 TUB", "unit": "TUB", "cat": "CHILLED"}, {"id": "SRIRACHA SAUCE", "name": "SRIRACHA SAUCE", "minimum": "1 BOTOL", "unit": "BOTOL", "cat": "KERING"}, {"id": "SUSU CAIR", "name": "SUSU CAIR", "minimum": "5 TIN", "unit": "TIN", "cat": "KERING"}, {"id": "SWEET POTATO", "name": "SWEET POTATO", "minimum": "2 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "SWISS BROWN MUSHROOM", "name": "SWISS BROWN MUSHROOM", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "TARTAR SAUCE", "name": "TARTAR SAUCE", "minimum": "1 TUB", "unit": "TUB", "cat": "CHILLED"}, {"id": "TATER TOTS", "name": "TATER TOTS", "minimum": "1 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "TAUGEH", "name": "TAUGEH", "minimum": "1 TUB", "unit": "TUB", "cat": "CHILLED"}, {"id": "TEPUNG BESTARI CLASSIC", "name": "TEPUNG BESTARI CLASSIC", "minimum": "2 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "VEPLUS", "name": "VEPLUS", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "SPICY WEDGES", "name": "SPICY WEDGES", "minimum": "2 PKT", "unit": "CTN / PKT", "cat": "FROZEN"}], "kitchen_merab": [{"id": "BEKAS SAMBAL MAKAN", "name": "BEKAS SAMBAL MAKAN", "minimum": "2 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "BEKAS SAMBAL TAKEAWAY", "name": "BEKAS SAMBAL TAKEAWAY", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "BEKAS SQ7", "name": "BEKAS SQ7", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "BEKAS SUP MAKAN", "name": "BEKAS SUP MAKAN", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "BEKAS SUP TAKEAWAY", "name": "BEKAS SUP TAKEAWAY", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "BEKAS TNZ900", "name": "BEKAS TNZ900", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "BROWN BOX", "name": "BROWN BOX", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "MAC N CHEESE BOWL", "name": "MAC N CHEESE BOWL", "minimum": "2 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "MUSHROOM SOUP BOWL", "name": "MUSHROOM SOUP BOWL", "minimum": "2 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "FRIES STARMAX", "name": "FRIES STARMAX", "minimum": "1 CTN", "unit": "CTN", "cat": "FROZEN"}, {"id": "ONION RING", "name": "ONION RING", "minimum": "2 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "ROTI BAGUETTE", "name": "ROTI BAGUETTE", "minimum": "1 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "KEROPOK IKAN", "name": "KEROPOK IKAN", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "LIGHTER PISTOL", "name": "LIGHTER PISTOL", "minimum": "-", "unit": "UNIT", "cat": "BEKALAN"}, {"id": "NACHOS CHIP", "name": "NACHOS CHIP", "minimum": "2 PKT", "unit": "CTN", "cat": "FROZEN"}, {"id": "UDANG", "name": "UDANG", "minimum": "2 KG", "unit": "KG", "cat": "FROZEN"}, {"id": "PES TOMYAM", "name": "PES TOMYAM", "minimum": "2 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "ALUMINIUM FOIL", "name": "ALUMINIUM FOIL", "minimum": "1 KTK", "unit": "KTK", "cat": "BEKALAN"}, {"id": "AYAM 2KG POTONG 16", "name": "AYAM 2KG POTONG 16", "minimum": "3 EKOR", "unit": "EKOR", "cat": "FROZEN"}, {"id": "BAKED PAPER", "name": "BAKED PAPER", "minimum": "1 KTK", "unit": "KTK", "cat": "BEKALAN"}, {"id": "BAWANG GORENG RIANG", "name": "BAWANG GORENG RIANG", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "BAWANG HOLLAND", "name": "BAWANG HOLLAND", "minimum": "10 BIJI", "unit": "BIJI", "cat": "CHILLED"}, {"id": "BBQ SAUCE", "name": "BBQ SAUCE", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "BEBOLA IKAN AAA PUTIH", "name": "BEBOLA IKAN AAA PUTIH", "minimum": "3 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "BEEF BREAKFAST HENNEIE", "name": "BEEF BREAKFAST HENNEIE", "minimum": "2 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "BEEF PEPPERONI", "name": "BEEF PEPPERONI", "minimum": "2 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "BEEF SALAMI", "name": "BEEF SALAMI", "minimum": "2 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "BIJAN PUTIH", "name": "BIJAN PUTIH", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "BLACK PEPPER BIJI", "name": "BLACK PEPPER BIJI", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "BUNA SHIMEJI MUSHROOM", "name": "BUNA SHIMEJI MUSHROOM", "minimum": "10 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "BUTTERCUP", "name": "BUTTERCUP", "minimum": "10 BLOK", "unit": "BLOK", "cat": "CHILLED"}, {"id": "CAPSICUM HIJAU", "name": "CAPSICUM HIJAU", "minimum": "10 BIJI", "unit": "BIJI", "cat": "CHILLED"}, {"id": "CAPSICUM MERAH", "name": "CAPSICUM MERAH", "minimum": "10 BIJI", "unit": "BIJI", "cat": "CHILLED"}, {"id": "CARBONARA BULDAK SAMYANG", "name": "CARBONARA BULDAK SAMYANG", "minimum": "2 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "CHERRY TOMATO", "name": "CHERRY TOMATO", "minimum": "1 KG", "unit": "KG", "cat": "CHILLED"}, {"id": "CHICKEN CHOP 10", "name": "CHICKEN CHOP 10", "minimum": "1 CTN", "unit": "CTN", "cat": "FROZEN"}, {"id": "CHICKEN PEPPERONI", "name": "CHICKEN PEPPERONI", "minimum": "2 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "CHICKEN SLICE FIGO", "name": "CHICKEN SLICE FIGO", "minimum": "4 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "CHICKEN STOCK MAGGI", "name": "CHICKEN STOCK MAGGI", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "CHILI FLAKES BIASA", "name": "CHILI FLAKES BIASA", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "CHILI FLAKES THAI", "name": "CHILI FLAKES THAI", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "CILI PADI MERAH", "name": "CILI PADI MERAH", "minimum": "1 KG", "unit": "KG", "cat": "CHILLED"}, {"id": "CLAM", "name": "CLAM", "minimum": "1 CTN", "unit": "CTN", "cat": "FROZEN"}, {"id": "CLING WRAP 450", "name": "CLING WRAP 450", "minimum": "1 KTK", "unit": "KTK", "cat": "BEKALAN"}, {"id": "COOKING CREAM GLF", "name": "COOKING CREAM GLF", "minimum": "1 CTN", "unit": "CTN", "cat": "CHILLED"}, {"id": "DAGING KISAR", "name": "DAGING KISAR", "minimum": "5 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "DAUN BAWANG", "name": "DAUN BAWANG", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "DAUN KARI", "name": "DAUN KARI", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "DAUN LIMAU PURUT", "name": "DAUN LIMAU PURUT", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "DAUN PISANG", "name": "DAUN PISANG", "minimum": "1 IKAT", "unit": "IKAT", "cat": "CHILLED"}, {"id": "DRIED PARSLEY", "name": "DRIED PARSLEY", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "DRY STIR FRY SHIN RAMYUN", "name": "DRY STIR FRY SHIN RAMYUN", "minimum": "2 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "EMBORG CHEDDAR CHEESE 84 SLICE", "name": "EMBORG CHEDDAR CHEESE 84 SLICE", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "FISH CAKE", "name": "FISH CAKE", "minimum": "2 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "FRESH PARSLEY", "name": "FRESH PARSLEY", "minimum": "½ PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "GARAM HALUS", "name": "GARAM HALUS", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "GARLIC", "name": "GARLIC", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "GREEN CORAL", "name": "GREEN CORAL", "minimum": "2 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "IKAN BILIS MURAH", "name": "IKAN BILIS MURAH", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "INDOMIE", "name": "INDOMIE", "minimum": "3 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "ISI KERANG BESAR", "name": "ISI KERANG BESAR", "minimum": "1 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "KACANG TANAH", "name": "KACANG TANAH", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "KANGKUNG", "name": "KANGKUNG", "minimum": "1 IKAT", "unit": "IKAT", "cat": "CHILLED"}, {"id": "KEROPOK MONI", "name": "KEROPOK MONI", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "KNORR SALTED EGG", "name": "KNORR SALTED EGG", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "KUCAI", "name": "KUCAI", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "KUEY TEOW WIN", "name": "KUEY TEOW WIN", "minimum": "2 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "LAPIK MERAH PUTIH", "name": "LAPIK MERAH PUTIH", "minimum": "2 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "MAGGI KARI", "name": "MAGGI KARI", "minimum": "2 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "MANTOU CB MINI PLAIN", "name": "MANTOU CB MINI PLAIN", "minimum": "5 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "MARGARINE CHOICE", "name": "MARGARINE CHOICE", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "MAYONNAISE LONGSON 3KG", "name": "MAYONNAISE LONGSON 3KG", "minimum": "2 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "MEATBALL RAMLY", "name": "MEATBALL RAMLY", "minimum": "1 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "MEE SEDAP", "name": "MEE SEDAP", "minimum": "3 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "MINYAK MASAK MURAH", "name": "MINYAK MASAK MURAH", "minimum": "1 CTN", "unit": "CTN", "cat": "KERING"}, {"id": "MOZZARELLA FESTINO 2KG", "name": "MOZZARELLA FESTINO 2KG", "minimum": "1 PKT", "unit": "PKT / CTN", "cat": "CHILLED"}, {"id": "NENAS TIN", "name": "NENAS TIN", "minimum": "2 TIN", "unit": "TIN", "cat": "KERING"}, {"id": "OREGANO", "name": "OREGANO", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "ORIGINAL BULDAK SAMYANG", "name": "ORIGINAL BULDAK SAMYANG", "minimum": "2 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "PARMESAN CHEESE GUD", "name": "PARMESAN CHEESE GUD", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "PICKLE", "name": "PICKLE", "minimum": "1 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "PLASTIK 6X9", "name": "PLASTIK 6X9", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "POTATO CRUNCHIES TATER TOTS", "name": "POTATO CRUNCHIES TATER TOTS", "minimum": "2 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "RAMLY NUGGET TEMPURA", "name": "RAMLY NUGGET TEMPURA", "minimum": "5 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "SABUN HIJAU FAST CLEAN", "name": "SABUN HIJAU FAST CLEAN", "minimum": "1 TONG", "unit": "TONG", "cat": "BEKALAN"}, {"id": "SABUN PINK LANTAI", "name": "SABUN PINK LANTAI", "minimum": "1 TONG", "unit": "TONG", "cat": "BEKALAN"}, {"id": "SABUN SERBUK", "name": "SABUN SERBUK", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "SAN REMO ELBOW MACARONI", "name": "SAN REMO ELBOW MACARONI", "minimum": "1 CTN", "unit": "CTN", "cat": "KERING"}, {"id": "SANTAN KARA 1L", "name": "SANTAN KARA 1L", "minimum": "2 UNIT", "unit": "UNIT", "cat": "CHILLED"}, {"id": "SAUSAGE COCKTAIL VF", "name": "SAUSAGE COCKTAIL VF", "minimum": "5 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "SAWI", "name": "SAWI", "minimum": "1 IKAT", "unit": "IKAT", "cat": "CHILLED"}, {"id": "SERAI", "name": "SERAI", "minimum": "1 IKAT", "unit": "IKAT", "cat": "CHILLED"}, {"id": "SHAKER BBQ", "name": "SHAKER BBQ", "minimum": "3 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "SHAKER CHEESE", "name": "SHAKER CHEESE", "minimum": "3 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "SHAKER HOT N SPICY", "name": "SHAKER HOT N SPICY", "minimum": "3 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "SOS CILI LONGSON 3KG", "name": "SOS CILI LONGSON 3KG", "minimum": "2 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "SOUP SHIN RAMYUN", "name": "SOUP SHIN RAMYUN", "minimum": "2 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "SPAGHETTI KIMBALL", "name": "SPAGHETTI KIMBALL", "minimum": "1 CTN", "unit": "CTN", "cat": "KERING"}, {"id": "SUSU CAIR", "name": "SUSU CAIR", "minimum": "10 TIN", "unit": "TIN", "cat": "CHILLED"}, {"id": "SUSU FULL CREAM", "name": "SUSU FULL CREAM", "minimum": "1 CTN", "unit": "CTN", "cat": "CHILLED"}, {"id": "SWEET POTATO", "name": "SWEET POTATO", "minimum": "5 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "SWISS BEAR CHEESE SAUCE", "name": "SWISS BEAR CHEESE SAUCE", "minimum": "3 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "SWISS BROWN MUSHROOM", "name": "SWISS BROWN MUSHROOM", "minimum": "3 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "TAUGEH", "name": "TAUGEH", "minimum": "1 KG", "unit": "KG", "cat": "CHILLED"}, {"id": "TELUR AYAM A", "name": "TELUR AYAM A", "minimum": "2 PAPAN", "unit": "PAPAN", "cat": "KERING"}, {"id": "TEMPE", "name": "TEMPE", "minimum": "5 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "TEPUNG BESTARI CLASSIC", "name": "TEPUNG BESTARI CLASSIC", "minimum": "10 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "TEPUNG BESTARI PEDAS", "name": "TEPUNG BESTARI PEDAS", "minimum": "10 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "THOUSAND ISLAND", "name": "THOUSAND ISLAND", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "TOMATO", "name": "TOMATO", "minimum": "6 BIJI", "unit": "BIJI", "cat": "CHILLED"}, {"id": "WAGYU SLICE 200GM", "name": "WAGYU SLICE 200GM", "minimum": "1 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "WEDGES SPICY", "name": "WEDGES SPICY", "minimum": "5 PKT", "unit": "CTN / PKT", "cat": "FROZEN"}, {"id": "OLIVE OIL 5L", "name": "OLIVE OIL 5L", "minimum": "1 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "TEPUNG KENTANG", "name": "TEPUNG KENTANG", "minimum": "10 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "BURGER BUN", "name": "BURGER BUN", "minimum": "2 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "CARROT ALA CARTE", "name": "CARROT ALA CARTE", "minimum": "1 TUB", "unit": "CTN / KOTAK", "cat": "CHILLED"}, {"id": "CHICKEN BREAST DADU", "name": "CHICKEN BREAST DADU", "minimum": "1 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "CHICKEN POPCORN SET", "name": "CHICKEN POPCORN/SET", "minimum": "20 SET", "unit": "SET", "cat": "FROZEN"}, {"id": "CHICKEN TENDERS SET", "name": "CHICKEN TENDERS/SET", "minimum": "20 SET", "unit": "SET", "cat": "FROZEN"}, {"id": "CHICKEN WING SET", "name": "CHICKEN WING/SET", "minimum": "15 SET", "unit": "SET", "cat": "FROZEN"}, {"id": "CILI JERUK", "name": "CILI JERUK", "minimum": "2 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "DAGING SALAI PASTA", "name": "DAGING SALAI PASTA", "minimum": "10 SET", "unit": "SET", "cat": "CHILLED"}, {"id": "GARLIC BUTTER", "name": "GARLIC BUTTER", "minimum": "½ TUB", "unit": "TUB", "cat": "CHILLED"}, {"id": "GARLIC OIL NASI GORENG", "name": "GARLIC OIL NASI GORENG", "minimum": "1 TUB", "unit": "TUB", "cat": "CHILLED"}, {"id": "GARLIC SAUCE", "name": "GARLIC SAUCE", "minimum": "1 TUB", "unit": "TUB", "cat": "CHILLED"}, {"id": "HONEY MUSTARD", "name": "HONEY MUSTARD", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "HOT HONEY SAUCE", "name": "HOT HONEY SAUCE", "minimum": "1 TUB", "unit": "TUB", "cat": "CHILLED"}, {"id": "KUAH BOLOGNESE", "name": "KUAH BOLOGNESE", "minimum": "2 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "KUAH BUTTERMILK", "name": "KUAH BUTTERMILK", "minimum": "1 TUB", "unit": "TUB", "cat": "CHILLED"}, {"id": "MUSHROOM SOUP", "name": "MUSHROOM SOUP", "minimum": "10 BEKAS", "unit": "BEKAS", "cat": "CHILLED"}, {"id": "PERAPAN CHICKEN GRILLED", "name": "PERAPAN CHICKEN GRILLED", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "PES KUEY TEOW", "name": "PES KUEY TEOW", "minimum": "1 TUB", "unit": "TUB", "cat": "CHILLED"}, {"id": "PES MASAK LEMAK ATOK", "name": "PES MASAK LEMAK ATOK", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "PES NASI GORENG KAMPUNG", "name": "PES NASI GORENG KAMPUNG", "minimum": "2 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "PES NASI GORENG SEAFOOD", "name": "PES NASI GORENG SEAFOOD", "minimum": "2 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "SAMBAL BILIS NASI LEMAK", "name": "SAMBAL BILIS NASI LEMAK", "minimum": "1 TUB", "unit": "TUB", "cat": "CHILLED"}, {"id": "SAMBAL KICAP", "name": "SAMBAL KICAP", "minimum": "1 BEKAS", "unit": "BEKAS", "cat": "CHILLED"}, {"id": "SOS CHEESE MAC N CHEESE", "name": "SOS CHEESE MAC N CHEESE", "minimum": "2 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "SOS KOREAN", "name": "SOS KOREAN", "minimum": "1 TUB", "unit": "TUB", "cat": "CHILLED"}, {"id": "SOTONG LAMBAK SET", "name": "SOTONG LAMBAK/SET", "minimum": "10 SET", "unit": "SET", "cat": "FROZEN"}, {"id": "KICAP SOTONG PUTERI", "name": "KICAP SOTONG PUTERI", "minimum": "1 BOTOL", "unit": "BOTOL", "cat": "KERING"}, {"id": "BERAS PUTIH", "name": "BERAS PUTIH", "minimum": "1 PAKET (10KG)", "unit": "PAKET (10KG)", "cat": "KERING"}], "floor_cheras": [{"id": "BEKAS TAKEAWAY FREE", "name": "BEKAS TAKEAWAY FREE", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "CUP 12 OZ", "name": "CUP 12 OZ", "minimum": "1 ROLL", "unit": "ROLL", "cat": "BEKALAN"}, {"id": "CUP 16 OZ", "name": "CUP 16 OZ", "minimum": "4 ROLL", "unit": "ROLL", "cat": "BEKALAN"}, {"id": "CUP LID 16OZ PET", "name": "CUP LID 16OZ PET", "minimum": "1 ROLL", "unit": "ROLL", "cat": "BEKALAN"}, {"id": "CUP SOS TAKEAWAY BESAR", "name": "CUP SOS TAKEAWAY BESAR", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "CUP SOS TAKEAWAY KECIL", "name": "CUP SOS TAKEAWAY KECIL", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "GARFU PLASTIK", "name": "GARFU PLASTIK", "minimum": "2 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "PISAU PLASTIK", "name": "PISAU PLASTIK", "minimum": "2 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "PLASTIK PUTIH 17X19", "name": "PLASTIK PUTIH 17X19 (SMALL)", "minimum": "5 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "PLASTIK PUTIH 55", "name": "PLASTIK PUTIH 55 (MEDIUM)", "minimum": "3 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "PLASTIK PUTIH 609X710", "name": "PLASTIK PUTIH 609X710 (LARGE)", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "SABUN TANGAN", "name": "SABUN TANGAN", "minimum": "½ BTL", "unit": "BTL", "cat": "BEKALAN"}, {"id": "STRAW BESAR", "name": "STRAW BESAR", "minimum": "2 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "STRAW HITAM", "name": "STRAW HITAM", "minimum": "4 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "SUDU PLASTIK", "name": "SUDU PLASTIK", "minimum": "2 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "TEH MERAH", "name": "TEH MERAH", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "ORIGINAL CREAM CROFFLE", "name": "ORIGINAL CREAM CROFFLE", "minimum": "1 PKT", "unit": "PKT", "cat": "FROZEN"}, {"id": "CUP 14 OZ", "name": "CUP 14 OZ", "minimum": "2 CTN", "unit": "CTN", "cat": "BEKALAN"}, {"id": "BLUE CURACAO SYRUP", "name": "BLUE CURACAO SYRUP", "minimum": "1 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "ASAM BOI 500GM", "name": "ASAM BOI 500GM", "minimum": "1 PKT", "unit": "500GM", "cat": "KERING"}, {"id": "BLUEBERRY", "name": "BLUEBERRY", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "CINCAU", "name": "CINCAU", "minimum": "1 BLOK", "unit": "BLOK", "cat": "CHILLED"}, {"id": "CRUSHED PEANUTS", "name": "CRUSHED PEANUTS", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "EPAL HIJAU", "name": "EPAL HIJAU", "minimum": "½ CTN", "unit": "PKT", "cat": "CHILLED"}, {"id": "GETAH SAYUR", "name": "GETAH SAYUR", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "GLOVE HITAM GETAH", "name": "GLOVE HITAM GETAH (L)", "minimum": "-", "unit": "UNIT", "cat": "BEKALAN"}, {"id": "GLOVE PLASTIK", "name": "GLOVE PLASTIK", "minimum": "1 KTK", "unit": "KTK", "cat": "BEKALAN"}, {"id": "GULA", "name": "GULA", "minimum": "10 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "ICE LEMON TEA", "name": "ICE LEMON TEA", "minimum": "5 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "JAGUNG KERNEL TIN", "name": "JAGUNG KERNEL TIN", "minimum": "3 TIN", "unit": "TIN", "cat": "KERING"}, {"id": "KICAP BANGO", "name": "KICAP BANGO", "minimum": "¼ BTL", "unit": "BTL", "cat": "KERING"}, {"id": "LAICI TIN SANTEH", "name": "LAICI TIN SANTEH", "minimum": "1 CTN", "unit": "TIN / CTN", "cat": "KERING"}, {"id": "LEMON", "name": "LEMON", "minimum": "½ CTN", "unit": "PKT", "cat": "CHILLED"}, {"id": "MAYONNAISE LONGSON 3KG", "name": "MAYONNAISE LONGSON 3KG", "minimum": "2 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "MINERAL ICE MOUNTAIN 600ML", "name": "MINERAL ICE MOUNTAIN 600ML", "minimum": "1 CTN", "unit": "CTN", "cat": "KERING"}, {"id": "MINT LEAVES", "name": "MINT LEAVES", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "ORANGE", "name": "ORANGE", "minimum": "½ CTN", "unit": "PKT", "cat": "CHILLED"}, {"id": "PISANG CAVENDISH", "name": "PISANG CAVENDISH", "minimum": "½ IKAT", "unit": "IKAT", "cat": "CHILLED"}, {"id": "PLASTIK 20X20", "name": "PLASTIK 20X20", "minimum": "2 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "PLASTIK 56X56", "name": "PLASTIK 56X56", "minimum": "2 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "PLASTIK SAMPAH", "name": "PLASTIK SAMPAH (XL)", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "PLASTIK SAMPAH KECIL", "name": "PLASTIK SAMPAH KECIL", "minimum": "½ ROLL", "unit": "PKT", "cat": "BEKALAN"}, {"id": "RIBENA BESAR", "name": "RIBENA BESAR", "minimum": "1 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "SABUN PINK LANTAI", "name": "SABUN PINK LANTAI", "minimum": "1 TONG", "unit": "TONG", "cat": "BEKALAN"}, {"id": "SERAI WANGI JMT 5L", "name": "SERAI WANGI JMT 5L", "minimum": "1 BTL", "unit": "BTL", "cat": "BEKALAN"}, {"id": "SERBUK NESTLE PINK LYCHEE", "name": "SERBUK NESTLE PINK LYCHEE", "minimum": "2 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "SIRAP ROS AMINA", "name": "SIRAP ROS AMINA", "minimum": "½ BTL", "unit": "BTL", "cat": "KERING"}, {"id": "SOS CILI LONGSON 3KG", "name": "SOS CILI LONGSON 3KG", "minimum": "3 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "SPRITE 1 5L", "name": "SPRITE 1.5L", "minimum": "5 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "SPRITZER SPARKLING", "name": "SPRITZER SPARKLING", "minimum": "2 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "STRAWBERRY CAMERON", "name": "STRAWBERRY CAMERON", "minimum": "2 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "SUSU FARM FRESH", "name": "SUSU FARM FRESH", "minimum": "3 BTL", "unit": "BTL", "cat": "CHILLED"}, {"id": "SUSU FULL CREAM", "name": "SUSU FULL CREAM", "minimum": "3 KTK", "unit": "CTN", "cat": "CHILLED"}, {"id": "SUSU PEKAT PAKET", "name": "SUSU PEKAT PAKET", "minimum": "3 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "SWISS BEAR CHEESE SAUCE", "name": "SWISS BEAR CHEESE SAUCE", "minimum": "1 KTK", "unit": "KTK", "cat": "CHILLED"}, {"id": "TEMBIKAI MERAH", "name": "TEMBIKAI MERAH", "minimum": "2 BIJI", "unit": "BIJI", "cat": "CHILLED"}, {"id": "TISU SERVIETTE", "name": "TISU SERVIETTE", "minimum": "4 BUNDLE", "unit": "BUNDLE", "cat": "BEKALAN"}, {"id": "TISU TANDAS", "name": "TISU TANDAS", "minimum": "½ PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "VANILLA ESSENCE", "name": "VANILLA ESSENCE", "minimum": "½ BTL", "unit": "BTL", "cat": "KERING"}, {"id": "WAFFLE ESSENCE", "name": "WAFFLE ESSENCE", "minimum": "½ BTL", "unit": "BTL", "cat": "KERING"}, {"id": "BIJI KOPI", "name": "BIJI KOPI", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "BERYLS DARK CHOCOLATE 5KG", "name": "BERYLS DARK CHOCOLATE 5KG", "minimum": "½ TUB", "unit": "TUB", "cat": "KERING"}, {"id": "BERYLS MILK CHOCOLATE 5KG", "name": "BERYLS MILK CHOCOLATE 5KG (TOPPING)", "minimum": "1 TUB", "unit": "TUB", "cat": "KERING"}, {"id": "BERYLS WHITE CHOCOLATE 1KG", "name": "BERYLS WHITE CHOCOLATE 1KG (TOPPING)", "minimum": "1 TUB", "unit": "TUB", "cat": "KERING"}, {"id": "BISCOFF BISCUITS", "name": "BISCOFF BISCUITS", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "BISCOFF CRUMBS", "name": "BISCOFF CRUMBS", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "BISCOFF SPREAD", "name": "BISCOFF SPREAD", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "BUTTERSCOTCH GOURMET", "name": "BUTTERSCOTCH GOURMET", "minimum": "½ BTL", "unit": "BTL", "cat": "KERING"}, {"id": "CARAMEL GOURMET", "name": "CARAMEL GOURMET", "minimum": "½ BTL", "unit": "BTL", "cat": "KERING"}, {"id": "CLASSIC PEPPERMINT DA VINCI", "name": "CLASSIC PEPPERMINT DA VINCI", "minimum": "1 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "DA VINCI BUTTERSCOTCH SYRUP", "name": "DA VINCI BUTTERSCOTCH SYRUP", "minimum": "¼ BTL", "unit": "BTL", "cat": "KERING"}, {"id": "DA VINCI CARAMEL SYRUP", "name": "DA VINCI CARAMEL SYRUP", "minimum": "½ BTL", "unit": "BTL", "cat": "KERING"}, {"id": "DA VINCI CHOCOLATE SAUCE", "name": "DA VINCI CHOCOLATE SAUCE", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "DA VINCI HAZELNUT SYRUP", "name": "DA VINCI HAZELNUT SYRUP", "minimum": "½ BTL", "unit": "BTL", "cat": "KERING"}, {"id": "DA VINCI POMEGRANATE SYRUP", "name": "DA VINCI POMEGRANATE SYRUP", "minimum": "1 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "DA VINCI VANILLA SYRUP", "name": "DA VINCI VANILLA SYRUP", "minimum": "¼ BTL", "unit": "BTL", "cat": "KERING"}, {"id": "DA VINCI WATERMELON SYRUP", "name": "DA VINCI WATERMELON SYRUP", "minimum": "1 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "MATCHA", "name": "MATCHA", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "MONIN IRISH SYRUP", "name": "MONIN IRISH SYRUP", "minimum": "½ BTL", "unit": "BTL", "cat": "KERING"}, {"id": "MONIN TOFFEE NUT SYRUP", "name": "MONIN TOFFEE NUT SYRUP", "minimum": "½ BTL", "unit": "BTL", "cat": "KERING"}, {"id": "PIZZA BOX 10INC BROWN", "name": "PIZZA BOX 10INC BROWN", "minimum": "1 CTN", "unit": "CTN", "cat": "BEKALAN"}, {"id": "SERBUK COKLAT DA VINCI", "name": "SERBUK COKLAT DA VINCI", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "STRAWBERRY MONIN PUREE", "name": "STRAWBERRY MONIN PUREE", "minimum": "1 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "TEPUNG WAFFLE CRISPY", "name": "TEPUNG WAFFLE CRISPY", "minimum": "4 PKT", "unit": "PKT", "cat": "KERING"}], "floor_merab": [{"id": "CUP 16OZ AIR KOSONG", "name": "CUP 16OZ AIR KOSONG", "minimum": "1 ROLL", "unit": "ROLL", "cat": "BEKALAN"}, {"id": "CUP 16OZ SODA", "name": "CUP 16OZ SODA", "minimum": "5 ROLL", "unit": "ROLL", "cat": "BEKALAN"}, {"id": "CUP AIR PANAS", "name": "CUP AIR PANAS", "minimum": "1 ROLL", "unit": "ROLL", "cat": "BEKALAN"}, {"id": "CUP HOLDER", "name": "CUP HOLDER", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "CUP HOLDER_1", "name": "CUP HOLDER ( 4 CUP )", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "DOLLY PAPER", "name": "DOLLY PAPER", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "GARFU PLASTIK", "name": "GARFU PLASTIK", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "KOTAK KEK SLICE", "name": "KOTAK KEK SLICE", "minimum": "5 PCS", "unit": "PCS", "cat": "BEKALAN"}, {"id": "KOTAK TAKEAWAY FREE", "name": "KOTAK TAKEAWAY FREE", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "PISAU PLASTIK", "name": "PISAU PLASTIK", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "PLASTIK LUT SINAR 12X15", "name": "PLASTIK LUT SINAR 12X15", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "PLASTIK PUTIH 17X19", "name": "PLASTIK PUTIH 17X19", "minimum": "1 BUNDLE", "unit": "BUNDLE", "cat": "BEKALAN"}, {"id": "PLASTIK PUTIH 20X24", "name": "PLASTIK PUTIH 20X24", "minimum": "1 BUNDLE", "unit": "BUNDLE", "cat": "BEKALAN"}, {"id": "SABUN CUCI TANGAN", "name": "SABUN CUCI TANGAN", "minimum": "1 BTL", "unit": "BTL", "cat": "BEKALAN"}, {"id": "STRAW HITAM", "name": "STRAW HITAM", "minimum": "3 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "SUDU PLASTIK", "name": "SUDU PLASTIK", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "TEH CAP KAPAK", "name": "TEH CAP KAPAK", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "CANVAS BIRU SIZE L", "name": "CANVAS BIRU SIZE L", "minimum": "-", "unit": "UNIT", "cat": "BEKALAN"}, {"id": "CROFFLE", "name": "CROFFLE", "minimum": "1 BKS", "unit": "BKS", "cat": "FROZEN"}, {"id": "FAMSY DETERGENT", "name": "FAMSY DETERGENT", "minimum": "1 BTL", "unit": "BTL", "cat": "BEKALAN"}, {"id": "PIPING BAG SIZE L", "name": "PIPING BAG SIZE L", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "CUP 14OZ", "name": "CUP 14OZ", "minimum": "2 CTN", "unit": "CTN", "cat": "BEKALAN"}, {"id": "ASAM BOI", "name": "ASAM BOI", "minimum": "½ PKT", "unit": "PKT", "cat": "KERING"}, {"id": "BLUEBERRY", "name": "BLUEBERRY", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "GULA", "name": "GULA", "minimum": "3 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "LAICI TIN SANTEH", "name": "LAICI TIN SANTEH", "minimum": "5 TIN", "unit": "TIN / CTN", "cat": "KERING"}, {"id": "LEMON", "name": "LEMON", "minimum": "5 BIJI", "unit": "PKT", "cat": "CHILLED"}, {"id": "MINERAL ICE MOUNTAIN 600ML", "name": "MINERAL ICE MOUNTAIN 600ML", "minimum": "2 CTN", "unit": "CTN", "cat": "KERING"}, {"id": "MINT LEAVES", "name": "MINT LEAVES", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "MINT SYRUP", "name": "MINT SYRUP", "minimum": "1 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "NENAS TIN", "name": "NENAS TIN", "minimum": "1 TIN", "unit": "TIN", "cat": "KERING"}, {"id": "OCEAN BLUE SYRUP", "name": "OCEAN BLUE SYRUP", "minimum": "1 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "ORANGE", "name": "ORANGE", "minimum": "3 BIJI", "unit": "PKT", "cat": "CHILLED"}, {"id": "PISANG CAVENDISH", "name": "PISANG CAVENDISH", "minimum": "1 IKAT", "unit": "IKAT", "cat": "CHILLED"}, {"id": "PLASTIK SAMPAH HITAM TEBAL XXL", "name": "PLASTIK SAMPAH HITAM TEBAL XXL", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "PLASTIK SAMPAH TANDAS", "name": "PLASTIK SAMPAH TANDAS", "minimum": "1 ROLL", "unit": "PKT", "cat": "BEKALAN"}, {"id": "RIBENA BESAR", "name": "RIBENA BESAR", "minimum": "½ BTL", "unit": "BTL", "cat": "KERING"}, {"id": "SABUN PINK LANTAI", "name": "SABUN PINK LANTAI", "minimum": "1 TONG", "unit": "TONG", "cat": "BEKALAN"}, {"id": "SABUN SERBUK", "name": "SABUN SERBUK", "minimum": "1 PKT", "unit": "PKT", "cat": "BEKALAN"}, {"id": "SERAI WANGI JMT 5L", "name": "SERAI WANGI JMT 5L", "minimum": "1 BTL", "unit": "BTL", "cat": "BEKALAN"}, {"id": "SERBUK ICE LEMON TEA", "name": "SERBUK ICE LEMON TEA", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "SERBUK NESTLE PINK LYCHEE", "name": "SERBUK NESTLE PINK LYCHEE", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "SPARKLING SODA", "name": "SPARKLING SODA", "minimum": "3 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "SPRITE", "name": "SPRITE", "minimum": "3 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "STRAWBERRY CAMERON", "name": "STRAWBERRY CAMERON", "minimum": "1 PKT", "unit": "PKT", "cat": "CHILLED"}, {"id": "SUSU CAIR", "name": "SUSU CAIR", "minimum": "2 TIN", "unit": "TIN", "cat": "KERING"}, {"id": "SUSU FARM FRESH", "name": "SUSU FARM FRESH", "minimum": "3 BTL", "unit": "BTL", "cat": "CHILLED"}, {"id": "SUSU PEKAT PAKET", "name": "SUSU PEKAT PAKET", "minimum": "2 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "TISU SERVIETTE", "name": "TISU SERVIETTE", "minimum": "4 BUNDLE", "unit": "BUNDLE", "cat": "BEKALAN"}, {"id": "TISU TANDAS", "name": "TISU TANDAS", "minimum": "2 ROLL", "unit": "ROLL", "cat": "BEKALAN"}, {"id": "VANILLA ESSENCE", "name": "VANILLA ESSENCE", "minimum": "½ BTL", "unit": "BTL", "cat": "KERING"}, {"id": "WAFFLE ESSENCE", "name": "WAFFLE ESSENCE", "minimum": "½ BTL", "unit": "BTL", "cat": "KERING"}, {"id": "BIJI KOPI", "name": "BIJI KOPI", "minimum": "5 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "BISKUT BISCOFF", "name": "BISKUT BISCOFF", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "BUTTERSCOTCH GOURMET", "name": "BUTTERSCOTCH GOURMET", "minimum": "½ BTL", "unit": "BTL", "cat": "KERING"}, {"id": "CARAMEL GOURMET", "name": "CARAMEL GOURMET", "minimum": "½ BTL", "unit": "BTL", "cat": "KERING"}, {"id": "DA VINCI BUTTERSCOTCH SYRUP", "name": "DA VINCI BUTTERSCOTCH SYRUP", "minimum": "1 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "DA VINCI CARAMEL SYRUP", "name": "DA VINCI CARAMEL SYRUP", "minimum": "1 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "DA VINCI CHOCOLATE SAUCE", "name": "DA VINCI CHOCOLATE SAUCE", "minimum": "½ BTL", "unit": "BTL", "cat": "KERING"}, {"id": "DA VINCI HAZELNUT SYRUP", "name": "DA VINCI HAZELNUT SYRUP", "minimum": "1 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "DA VINCI POMEGRANATE SYRUP", "name": "DA VINCI POMEGRANATE SYRUP", "minimum": "1 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "DA VINCI VANILLA SYRUP", "name": "DA VINCI VANILLA SYRUP", "minimum": "1 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "DA VINCI WATERMELON SYRUP", "name": "DA VINCI WATERMELON SYRUP", "minimum": "1 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "DARK CHOCOLATE", "name": "DARK CHOCOLATE", "minimum": "½ TUB", "unit": "TUB", "cat": "KERING"}, {"id": "MATCHA", "name": "MATCHA", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "MILK CHOCOLATE", "name": "MILK CHOCOLATE", "minimum": "½ TUB", "unit": "TUB", "cat": "KERING"}, {"id": "MONIN IRISH SYRUP", "name": "MONIN IRISH SYRUP", "minimum": "1 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "MONIN TOFFEE NUT SYRUP", "name": "MONIN TOFFEE NUT SYRUP", "minimum": "1 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "PISTACHIO SPREAD", "name": "PISTACHIO SPREAD", "minimum": "1", "unit": "UNIT", "cat": "KERING"}, {"id": "PIZZA BOX 10INC BROWN", "name": "PIZZA BOX 10INC BROWN", "minimum": "1 CTN", "unit": "CTN", "cat": "BEKALAN"}, {"id": "SERBUK COKLAT DA VINCI", "name": "SERBUK COKLAT DA VINCI", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "STRAWBERRY MONIN PUREE", "name": "STRAWBERRY MONIN PUREE", "minimum": "1 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "STRAWBERRY SYRUP", "name": "STRAWBERRY SYRUP", "minimum": "1 BTL", "unit": "BTL", "cat": "KERING"}, {"id": "TEPUNG WAFFLE CRISPY", "name": "TEPUNG WAFFLE CRISPY", "minimum": "1 PKT", "unit": "PKT", "cat": "KERING"}, {"id": "VALUE PRIDE ND WHIPPING CREAM", "name": "VALUE PRIDE ND WHIPPING CREAM", "minimum": "1 KTK", "unit": "KTK", "cat": "CHILLED"}, {"id": "WHITE CHOCOLATE", "name": "WHITE CHOCOLATE", "minimum": "½ TUB", "unit": "TUB", "cat": "KERING"}]};
+const DIRECTORY_SEED = {"CHERAS": {"BEKAS NASI": "Hugo Plastik", "BEKAS SAMBAL MAKAN": "Hugo Plastik", "MAC N CHEESE BOWL": "Hugo Plastik", "MUSHROOM SOUP BOWL": "Hugo Plastik", "SQ7": "Hugo Plastik", "TNZ900": "Hugo Plastik", "ROTI BAGUETTE": "Kj Frozen", "SHOESTRING FRIES STARMAX": "Kj Frozen", "LAMB SLICE": "Others", "NACHOS CHIP": "Others", "TOMATO CIAO": "Others", "TONG SAMPAH HIJAU WITH LID": "Others", "UDANG": "Pasar Basah Sadiq", "PETAI": "Pasar Sayur", "ALUMINIUM FOIL CRYSTALWRAP": "Sri Ternak", "BBQ SAUCE": "Sri Ternak", "BEBOLA IKAN AAA PUTIH": "Sri Ternak", "BEEF BREAKFAST HENNEIE": "Sri Ternak", "BEEF PEPPERONI": "Sri Ternak", "BERAS PUTIH": "Sri Ternak", "BLACK PEPPER BIJI": "Sri Ternak", "BROKOLI": "Sri Ternak", "BUNA SHIMEJI MUSHROOM": "Sri Ternak", "BUTTERCUP": "Sri Ternak", "CAPSICUM HIJAU": "Sri Ternak", "CAPSICUM MERAH": "Sri Ternak", "CARROT": "Sri Ternak", "CAULIFLOWER": "Sri Ternak", "CELERY": "Sri Ternak", "CHERRY TOMATO": "Sri Ternak", "CHICKEN CHOP 10": "Sri Ternak", "CHICKEN SLICE FIGO": "Sri Ternak", "CHICKEN STOCK MAGGI": "Sri Ternak", "CHILI FLAKES": "Sri Ternak", "CHILI FLAKES THAI": "Sri Ternak", "CILI PADI MERAH": "Sri Ternak", "CLING WRAP 450": "Sri Ternak", "COMBI CHEMICAL": "Sri Ternak", "COOKING CREAM GLF": "Sri Ternak", "CURLY FRIES": "Sri Ternak", "DAISY MARGARINE 4 8KG": "Sri Ternak", "DAUN KARI": "Sri Ternak", "DAUN KUNYIT": "Sri Ternak", "DAUN LIMAU": "Sri Ternak", "DEMI GLAZE KNORR": "Sri Ternak", "EMBORG CHEDDAR CHEESE 84 SLICE": "Sri Ternak", "FISH CAKE": "Sri Ternak", "GARAM": "Sri Ternak", "GARLIC": "Sri Ternak", "GREEN CORAL": "Sri Ternak", "HASHBROWN": "Sri Ternak", "ISI KERANG BESAR": "Sri Ternak", "JAGUNG CREAM TIN": "Sri Ternak", "JAGUNG TONGKOL": "Sri Ternak", "KACANG PANJANG": "Sri Ternak", "KANGKUNG": "Sri Ternak", "KEROPOK MONI": "Sri Ternak", "KNORR SALTED EGG": "Sri Ternak", "KOBIS BULAT": "Sri Ternak", "KOBIS UNGU": "Sri Ternak", "KUCAI": "Sri Ternak", "LAPIK MERAH PUTIH": "Sri Ternak", "MAEPRANOM CILI SAUCE": "Sri Ternak", "MARGARINE CHOICE": "Sri Ternak", "MEATBALL RAMLY": "Sri Ternak", "MINYAK MASAK MURAH": "Sri Ternak", "MIXED HERBS": "Sri Ternak", "MOZZARELLA FESTINO 2KG": "Sri Ternak", "NENAS TIN SLICE": "Sri Ternak", "OREGANO": "Sri Ternak", "PARMESAN CHEESE GUD": "Sri Ternak", "PARSLEY": "Sri Ternak", "PICKLE GHERKINS": "Sri Ternak", "PLASTIK 12X12": "Sri Ternak", "PLASTIK 6X9": "Sri Ternak", "RAMLY NUGGET TEMPURA": "Sri Ternak", "SABUN HIJAU": "Sri Ternak", "SABUN PINK": "Sri Ternak", "SABUN SERBUK": "Sri Ternak", "SAN REMO ELBOW MACARONI": "Sri Ternak", "SAUSAGE": "Sri Ternak", "SAWI": "Sri Ternak", "SEEDED BUN 5 INCH": "Sri Ternak", "SESAME SEED": "Sri Ternak", "SHAKER BBQ": "Sri Ternak", "SHAKER CHEESE": "Sri Ternak", "SHAKER HOT SPICY": "Sri Ternak", "SPAGHETTI KIMBALL": "Sri Ternak", "SUSU FULL CREAM": "Sri Ternak", "SWISS BEAR TARTAR SAUCE": "Sri Ternak", "TAUHU KERAS": "Sri Ternak", "TELUR AYAM": "Sri Ternak", "TEMPE": "Sri Ternak", "TEPUNG BERAS CAP GAJAH": "Sri Ternak", "TEPUNG BESTARI PEDAS": "Sri Ternak", "TEPUNG GANDUM": "Sri Ternak", "TEPUNG JAGUNG": "Sri Ternak", "TEPUNG UBI KAYU": "Sri Ternak", "THOUSAND ISLAND": "Sri Ternak", "TIMUN JEPUN": "Sri Ternak", "TOMATO": "Sri Ternak", "WEDGES SPICY": "Sri Ternak", "SOTONG XL": "Suji", "OLIVE OIL 5L": "Yummies", "TEPUNG KENTANG": "Yummies", "BEKAS TAKEAWAY FREE": "Hugo Plastik", "CUP 12 OZ": "Hugo Plastik", "CUP 16 OZ": "Hugo Plastik", "CUP LID 16OZ PET": "Hugo Plastik", "CUP SOS TAKEAWAY BESAR": "Hugo Plastik", "CUP SOS TAKEAWAY KECIL": "Hugo Plastik", "GARFU PLASTIK": "Hugo Plastik", "PISAU PLASTIK": "Hugo Plastik", "PLASTIK PUTIH 17X19": "Hugo Plastik", "PLASTIK PUTIH 55": "Hugo Plastik", "PLASTIK PUTIH 609X710": "Hugo Plastik", "SABUN TANGAN": "Hugo Plastik", "STRAW BESAR": "Hugo Plastik", "STRAW KECIL": "Hugo Plastik", "SUDU PLASTIK": "Hugo Plastik", "TEH MERAH": "Kedai Kelantan", "ORIGINAL CREAM CROFFLE": "Others", "CUP 14 OZ": "Others Shared Branches", "BLUE CURACAO SYRUP": "Pick", "ASAM BOI 500GM": "Sri Ternak", "BLUEBERRY": "Sri Ternak", "CINCAU": "Sri Ternak", "CRUSHED PEANUTS": "Sri Ternak", "EPAL HIJAU": "Sri Ternak", "GETAH SAYUR": "Sri Ternak", "GLOVE HITAM GETAH": "Sri Ternak", "GLOVE PLASTIK": "Sri Ternak", "GULA": "Sri Ternak", "ICE LEMON TEA": "Sri Ternak", "KICAP BANGO": "Sri Ternak", "LAICI TIN SANTEH": "Sri Ternak", "LEMON": "Sri Ternak", "MAYONNAISE LONGSON 3KG": "Sri Ternak", "MINERAL ICE MOUNTAIN 600ML": "Sri Ternak", "MINT LEAVES": "Sri Ternak", "ORANGE": "Sri Ternak", "PISANG CAVENDISH": "Sri Ternak", "PLASTIK 20X20": "Sri Ternak", "PLASTIK 56X56": "Sri Ternak", "PLASTIK SAMPAH": "Sri Ternak", "PLASTIK SAMPAH KECIL": "Sri Ternak", "RIBENA BESAR": "Sri Ternak", "SABUN PINK LANTAI": "Sri Ternak", "SERAI WANGI JMT 5L": "Sri Ternak", "SERBUK NESTLE PINK LYCHEE": "Sri Ternak", "SIRAP ROS AMINA": "Sri Ternak", "SOS CILI LONGSON 3KG": "Sri Ternak", "SPRITE 1 5L": "Sri Ternak", "SPRITZER SPARKLING": "Sri Ternak", "STRAWBERRY CAMERON": "Sri Ternak", "SUSU FARM FRESH": "Sri Ternak", "SUSU PEKAT PAKET": "Sri Ternak", "SWISS BEAR CHEESE SAUCE": "Sri Ternak", "TEMBIKAI MERAH": "Sri Ternak", "TISU SERVIETTE": "Sri Ternak", "TISU TANDAS": "Sri Ternak", "VANILLA ESSENCE": "Sri Ternak", "WAFFLE ESSENCE": "Sri Ternak", "BIJI KOPI": "Others", "BERYLS DARK CHOCOLATE 5KG": "Yummies", "BERYLS MILK CHOCOLATE 5KG": "Yummies", "BERYLS WHITE CHOCOLATE 1KG": "Yummies", "BISCOFF BISCUITS": "Yummies", "BISCOFF CRUMBS": "Yummies", "BISCOFF SPREAD": "Yummies", "BUTTERSCOTCH GOURMET": "Yummies", "CARAMEL GOURMET": "Yummies", "CLASSIC PEPPERMINT DA VINCI": "Yummies", "DA VINCI BUTTERSCOTCH SYRUP": "Yummies", "DA VINCI CARAMEL SYRUP": "Yummies", "DA VINCI CHOCOLATE SAUCE": "Yummies", "DA VINCI HAZELNUT SYRUP": "Yummies", "DA VINCI POMEGRANATE SYRUP": "Yummies", "DA VINCI VANILLA SYRUP": "Yummies", "DA VINCI WATERMELON SYRUP": "Yummies", "MATCHA": "Yummies", "MONIN IRISH SYRUP": "Yummies", "MONIN TOFFEE NUT SYRUP": "Yummies", "PIZZA BOX 10INC BROWN": "Yummies", "SERBUK COKLAT DA VINCI": "Yummies", "STRAWBERRY MONIN PUREE": "Yummies", "TEPUNG WAFFLE CRISPY": "Yummies", "CHICKEN PEPPERONI": "Ck Transfer Only", "WAGYU SLICE 200GM": "Sri Ternak", "EMBORG CHEESE 84 SLICE": "Sri Ternak", "SWISS BROWN MUSHROOM": "Sri Ternak", "DAUN BAWANG": "Sri Ternak", "ROCKET SALAD": "Sri Ternak", "BASIL": "Ck Transfer Only", "IKAN BILIS": "Sri Ternak", "BAWANG GORENG RIANG": "Sri Ternak", "SRIRACHA SAUCE": "Sri Ternak", "TEPUNG BESTARI CLASSIC": "Sri Ternak", "SUSU CAIR": "Sri Ternak", "SERBUK KUNYIT": "Sri Ternak", "CAFIZA DETERGENT": "Others", "IKAN TALAPIA": "Sadiq", "PLASTIK HM6X9": "Hugo Plastik", "AYAM BB POTONG CUBE 1 INCI": "Ck Transfer Only", "AYAM PENYET": "Ck Transfer Only", "CHICKEN WING S": "Ck Transfer Only", "HONEY MUSTARD": "Ck Transfer Only", "KUAH BLACKPEPPER": "Ck Transfer Only", "KUAH BOLOGNESE": "Ck Transfer Only", "KUAH BUTTERMILK": "Ck Transfer Only", "KUAH SHELLOUT": "Ck Transfer Only", "MUSHROOM SOUP": "Ck Transfer Only", "PATTY": "Ck Transfer Only", "PES MASAK LEMAK": "Ck Transfer Only", "SAMBAL KICAP": "Ck Transfer Only", "SAMBAL TERASI": "Ck Transfer Only", "SHELLOUT SEAFOOD": "Ck Transfer Only", "SOS CHEESE MACCARONI": "Ck Transfer Only", "BASSO POMACE OLIVE OIL 5L": "Ck Transfer Only", "BAWANG HOLLAND": "Ck Transfer Only", "BEEF SALAMI": "Ck Transfer Only", "BEKAS SUP MAKAN": "Ck Transfer Only", "BEKAS TAKEAWAY SAMBAL": "Ck Transfer Only", "BEKAS TAKEAWAY SUP": "Ck Transfer Only", "BROWN BOX": "Ck Transfer Only", "DAGING KISAR": "Ck Transfer Only", "STRAW HITAM": "Hugo Plastik", "CURLY FRIES SAVOURY LOOPS": "Sri Ternak", "JAGUNG KERNEL TIN": "Sri Ternak"}, "SUNGAI_MERAB": {"BEKAS SAMBAL MAKAN": "Hugo Plastik", "BEKAS SAMBAL TAKEAWAY": "Hugo Plastik", "BEKAS SQ7": "Hugo Plastik", "BEKAS SUP MAKAN": "Hugo Plastik", "BEKAS SUP TAKEAWAY": "Hugo Plastik", "BEKAS TNZ900": "Hugo Plastik", "BROWN BOX": "Hugo Plastik", "MAC N CHEESE BOWL": "Hugo Plastik", "MUSHROOM SOUP BOWL": "Hugo Plastik", "FRIES STARMAX": "Kj Frozen", "ONION RING": "Kj Frozen", "ROTI BAGUETTE": "Kj Frozen", "KEROPOK IKAN": "Others", "LIGHTER PISTOL": "Others", "NACHOS CHIP": "Others", "UDANG": "Pasar Basah Sadiq", "PES TOMYAM": "Pick", "ALUMINIUM FOIL": "Sri Ternak", "AYAM 2KG POTONG 16": "Sri Ternak", "BAKED PAPER": "Sri Ternak", "BAWANG GORENG RIANG": "Sri Ternak", "BAWANG HOLLAND": "Sri Ternak", "BBQ SAUCE": "Sri Ternak", "BEBOLA IKAN AAA PUTIH": "Sri Ternak", "BEEF BREAKFAST HENNEIE": "Sri Ternak", "BEEF PEPPERONI": "Sri Ternak", "BEEF SALAMI": "Sri Ternak", "BIJAN PUTIH": "Sri Ternak", "BLACK PEPPER BIJI": "Sri Ternak", "BUNA SHIMEJI MUSHROOM": "Sri Ternak", "BUTTERCUP": "Sri Ternak", "CAPSICUM HIJAU": "Sri Ternak", "CAPSICUM MERAH": "Sri Ternak", "CARBONARA BULDAK SAMYANG": "Sri Ternak", "CHERRY TOMATO": "Sri Ternak", "CHICKEN CHOP 10": "Sri Ternak", "CHICKEN PEPPERONI": "Sri Ternak", "CHICKEN SLICE FIGO": "Sri Ternak", "CHICKEN STOCK MAGGI": "Sri Ternak", "CHILI FLAKES BIASA": "Sri Ternak", "CHILI FLAKES THAI": "Sri Ternak", "CILI PADI MERAH": "Sri Ternak", "CLAM": "Sri Ternak", "CLING WRAP 450": "Sri Ternak", "COOKING CREAM GLF": "Sri Ternak", "DAGING KISAR": "Sri Ternak", "DAUN BAWANG": "Sri Ternak", "DAUN KARI": "Sri Ternak", "DAUN LIMAU PURUT": "Sri Ternak", "DAUN PISANG": "Sri Ternak", "DRIED PARSLEY": "Sri Ternak", "DRY STIR FRY SHIN RAMYUN": "Sri Ternak", "EMBORG CHEDDAR CHEESE 84 SLICE": "Sri Ternak", "FISH CAKE": "Sri Ternak", "FRESH PARSLEY": "Sri Ternak", "GARAM HALUS": "Sri Ternak", "GARLIC": "Sri Ternak", "GREEN CORAL": "Sri Ternak", "IKAN BILIS MURAH": "Sri Ternak", "INDOMIE": "Sri Ternak", "ISI KERANG BESAR": "Sri Ternak", "KACANG TANAH": "Sri Ternak", "KANGKUNG": "Sri Ternak", "KEROPOK MONI": "Sri Ternak", "KNORR SALTED EGG": "Sri Ternak", "KUCAI": "Sri Ternak", "KUEY TEOW WIN": "Sri Ternak", "LAPIK MERAH PUTIH": "Others", "MAGGI KARI": "Sri Ternak", "MANTOU CB MINI PLAIN": "Sri Ternak", "MARGARINE CHOICE": "Sri Ternak", "MAYONNAISE LONGSON 3KG": "Sri Ternak", "MEATBALL RAMLY": "Sri Ternak", "MEE SEDAP": "Sri Ternak", "MINYAK MASAK MURAH": "Sri Ternak", "MOZZARELLA FESTINO 2KG": "Sri Ternak", "NENAS TIN": "Sri Ternak", "OREGANO": "Sri Ternak", "ORIGINAL BULDAK SAMYANG": "Sri Ternak", "PARMESAN CHEESE GUD": "Sri Ternak", "PICKLE": "Sri Ternak", "PLASTIK 6X9": "Sri Ternak", "POTATO CRUNCHIES TATER TOTS": "Sri Ternak", "RAMLY NUGGET TEMPURA": "Sri Ternak", "SABUN HIJAU FAST CLEAN": "Sri Ternak", "SABUN PINK LANTAI": "Sri Ternak", "SABUN SERBUK": "Sri Ternak", "SAN REMO ELBOW MACARONI": "Sri Ternak", "SANTAN KARA 1L": "Sri Ternak", "SAUSAGE COCKTAIL VF": "Sri Ternak", "SAWI": "Sri Ternak", "SERAI": "Sri Ternak", "SHAKER BBQ": "Sri Ternak", "SHAKER CHEESE": "Sri Ternak", "SHAKER HOT N SPICY": "Sri Ternak", "SOS CILI LONGSON 3KG": "Sri Ternak", "SOUP SHIN RAMYUN": "Sri Ternak", "SPAGHETTI KIMBALL": "Sri Ternak", "SUSU CAIR": "Sri Ternak", "SUSU FULL CREAM": "Sri Ternak", "SWEET POTATO": "Kj Frozen", "SWISS BEAR CHEESE SAUCE": "Sri Ternak", "SWISS BROWN MUSHROOM": "Sri Ternak", "TAUGEH": "Sri Ternak", "TELUR AYAM A": "Sri Ternak", "TEMPE": "Sri Ternak", "TEPUNG BESTARI CLASSIC": "Sri Ternak", "TEPUNG BESTARI PEDAS": "Sri Ternak", "THOUSAND ISLAND": "Sri Ternak", "TOMATO": "Sri Ternak", "WAGYU SLICE 200GM": "Sri Ternak", "WEDGES SPICY": "Sri Ternak", "OLIVE OIL 5L": "Yummies", "TEPUNG KENTANG": "Yummies", "CUP 16OZ AIR KOSONG": "Hugo Plastik", "CUP 16OZ SODA": "Hugo Plastik", "CUP AIR PANAS": "Hugo Plastik", "CUP HOLDER": "Hugo Plastik", "DOLLY PAPER": "Hugo Plastik", "GARFU PLASTIK": "Hugo Plastik", "KOTAK KEK SLICE": "Hugo Plastik", "KOTAK TAKEAWAY FREE": "Hugo Plastik", "PISAU PLASTIK": "Hugo Plastik", "PLASTIK LUT SINAR 12X15": "Hugo Plastik", "PLASTIK PUTIH 17X19": "Hugo Plastik", "PLASTIK PUTIH 20X24": "Hugo Plastik", "SABUN CUCI TANGAN": "Hugo Plastik", "STRAW HITAM": "Hugo Plastik", "SUDU PLASTIK": "Hugo Plastik", "TEH CAP KAPAK": "Kedai Kelantan", "CANVAS BIRU SIZE L": "Others", "CROFFLE": "Others", "FAMSY DETERGENT": "Others", "PIPING BAG SIZE L": "Others", "CUP 14OZ": "Others Shared Branches", "ASAM BOI": "Sri Ternak", "BLUEBERRY": "Sri Ternak", "GULA": "Sri Ternak", "LAICI TIN SANTEH": "Sri Ternak", "LEMON": "Sri Ternak", "MINERAL ICE MOUNTAIN 600ML": "Sri Ternak", "MINT LEAVES": "Sri Ternak", "MINT SYRUP": "Sri Ternak", "OCEAN BLUE SYRUP": "Yummies", "ORANGE": "Sri Ternak", "PISANG CAVENDISH": "Sri Ternak", "PLASTIK SAMPAH HITAM TEBAL XXL": "Sri Ternak", "PLASTIK SAMPAH TANDAS": "Sri Ternak", "RIBENA BESAR": "Sri Ternak", "SERAI WANGI JMT 5L": "Sri Ternak", "SERBUK ICE LEMON TEA": "Sri Ternak", "SERBUK NESTLE PINK LYCHEE": "Sri Ternak", "SPARKLING SODA": "Sri Ternak", "SPRITE": "Sri Ternak", "STRAWBERRY CAMERON": "Sri Ternak", "SUSU FARM FRESH": "Sri Ternak", "SUSU PEKAT PAKET": "Sri Ternak", "TISU SERVIETTE": "Sri Ternak", "TISU TANDAS": "Sri Ternak", "VANILLA ESSENCE": "Yummies", "WAFFLE ESSENCE": "Sri Ternak", "BIJI KOPI": "Others", "BISKUT BISCOFF": "Yummies", "BUTTERSCOTCH GOURMET": "Yummies", "CARAMEL GOURMET": "Yummies", "DA VINCI BUTTERSCOTCH SYRUP": "Yummies", "DA VINCI CARAMEL SYRUP": "Yummies", "DA VINCI CHOCOLATE SAUCE": "Yummies", "DA VINCI HAZELNUT SYRUP": "Yummies", "DA VINCI POMEGRANATE SYRUP": "Yummies", "DA VINCI VANILLA SYRUP": "Yummies", "DA VINCI WATERMELON SYRUP": "Yummies", "DARK CHOCOLATE": "Yummies", "MATCHA": "Yummies", "MILK CHOCOLATE": "Yummies", "MONIN IRISH SYRUP": "Yummies", "MONIN TOFFEE NUT SYRUP": "Yummies", "PISTACHIO SPREAD": "Yummies", "PIZZA BOX 10INC BROWN": "Yummies", "SERBUK COKLAT DA VINCI": "Yummies", "STRAWBERRY MONIN PUREE": "Yummies", "STRAWBERRY SYRUP": "Yummies", "TEPUNG WAFFLE CRISPY": "Yummies", "VALUE PRIDE ND WHIPPING CREAM": "Yummies", "WHITE CHOCOLATE": "Yummies", "BAWANG MERAH": "Sri Ternak", "ROCKET SALAD": "Sri Ternak", "SRIRACHA SAUCE": "Sri Ternak", "CUP SOS BURGER PALING KECIL MAKAN": "Hugo Plastik", "PEPPERMINT SYRUP": "Yummies", "CAWAN 16OZ SODA": "Yummies", "CAWAN 16OZ AIR KOSONG": "Yummies", "STRAWBERRY PUREE MONIN": "Yummies", "MINCE BEEF": "Sri Ternak", "KICAP SOTONG PUTERI": "Sri Ternak", "BURGER BUN": "CK Transfer Only", "BERAS PUTIH": "Sri Ternak"}, "CENTRAL_KITCHEN": {"AYAM BB": "Sri Ternak", "AYAM BB POTONG CUBE 1 INCI": "Sri Ternak", "AYAM DARA POTONG 4": "Sri Ternak", "CHICKEN WING S": "Sri Ternak", "CHICKEN FILLET": "Sri Ternak", "DAGING KISAR SRI TERNAK": "Sri Ternak", "TOMATO PUREE DUCHEFF": "Sri Ternak", "HONEY 1KG": "Sri Ternak", "SWISS BEAR SPICY SAUCE": "Sri Ternak", "SWISS BEAR CHEESE SAUCE": "Sri Ternak", "SUSU FULL CREAM": "Sri Ternak", "SUSU CAIR": "Sri Ternak", "COOKING CREAM": "Sri Ternak", "CHEESE POWDER": "Eng Meng", "SPAGHETTI KIMBALL": "Sri Ternak", "SAN REMO ELBOW MACARONI": "Sri Ternak", "MINYAK MASAK MURAH": "Sri Ternak", "SANTAN KARA 1L": "Sri Ternak", "CHICKEN STOCK": "Sri Ternak", "CHICKEN STOCK CONCENTRATED": "Sri Ternak", "GARAM BIASA": "Sri Ternak", "SERBUK CILI": "Sri Ternak", "SERBUK KARI IKAN BABAS": "Sri Ternak", "SERBUK WHITE PEPPER CAP KAPAL": "Sri Ternak", "CAJUN": "Sri Ternak", "DEMI GLAZE": "Sri Ternak", "YELLOW MUSTARD": "Sri Ternak", "MAYONNAISE LONGSON 3KG": "Sri Ternak", "KICAP IKAN PUTERI": "Sri Ternak", "KICAP CAIR PUTERI": "Sri Ternak", "KICAP PEKAT PUTERI": "Sri Ternak", "CUKA": "Sri Ternak", "AIR LIMAU": "Sri Ternak", "BAWANG MERAH": "Sri Ternak", "BAWANG PUTIH": "Sri Ternak", "CILI MERAH": "Sri Ternak", "CILI HIJAU": "Sri Ternak", "CILI PADI MERAH": "Sri Ternak", "CILI PADI HIJAU": "Sri Ternak", "CILI YITU": "Sri Ternak", "CILI KERINTING PEDAS": "Sri Ternak", "HALIA": "Sri Ternak", "SERAI": "Sri Ternak", "DAUN KETUMBAR": "Sri Ternak", "LEMON": "Sri Ternak", "YOGURT 1 4KG": "Sri Ternak", "TELUR MASIN": "Sri Ternak", "IKAN BILIS MURAH": "Sri Ternak", "UDANG GERAGAU": "Sri Ternak", "SHITAKE MUSHROOM": "Sri Ternak", "VPLUS": "Sri Ternak", "SOTONG LAMBAK": "Sri Ternak", "SOTONG XL": "Suji", "KETAM": "Pick", "LALA": "Pick", "KUPANG": "Pick", "UDANG": "Sadiq", "IKAN TALAPIA": "Sadiq", "IKAN KEMBUNG": "Sadiq", "BEKAS MUSHROOM": "Hugo Plastik", "AYAM POTONG 12": "Sri Ternak", "KICAP ABC 5L": "Sri Ternak", "BELACAN": "Sri Ternak", "DRY OREGANO": "Sri Ternak", "DRY THYME": "Sri Ternak", "DRY ROSEMARY": "Sri Ternak", "ASAM KEPING": "Sri Ternak", "BIJI KETUMBAR": "Sri Ternak", "JINTAN MANIS": "Sri Ternak", "JINTAN PUTIH": "Sri Ternak", "BUAH KERAS": "Sri Ternak", "DAUN BAY": "Sri Ternak", "LADA HITAM": "Sri Ternak", "WHITE BREAD CRUMBS": "Sri Ternak", "MARJERIN CHOICE": "Sri Ternak", "LENGKUAS": "Sri Ternak", "KUNYIT HIDUP": "Sri Ternak", "PLASTIC HM6X9": "Sri Ternak", "PLASTIC HM8X12": "Sri Ternak", "PLASTIC SAMPAH HITAM TEBAL XXL": "Sri Ternak", "SABUN HIJAU": "Sri Ternak", "PLASTIC VACUUM 9X14": "Hugo Plastik", "PLASTIC VACUUM 10X16": "Hugo Plastik", "COCHUJANG": "Others"}};
+const OUTLETS = ["CHERAS", "SUNGAI_MERAB", "CENTRAL_KITCHEN"];
+const OUTLET_LABEL = { CHERAS: "CHERAS", SUNGAI_MERAB: "SUNGAI MERAB", CENTRAL_KITCHEN: "CENTRAL KITCHEN" };
+const KEEP_UPPER = new Set(["AAA","XL","XXL","GLF","GUD","SQ7","TNZ900","PET","BB","JMT","VF","KJ","A","B"]);
+const CAT_ORDER = ["FROZEN", "CHILLED", "KERING", "BEKALAN"];
+const CAT_LABEL = { FROZEN: "Frozen", CHILLED: "Chilled", KERING: "Kering", BEKALAN: "Bekalan / Packaging" };
+const CAT_EMOJI = { FROZEN: "🧊", CHILLED: "🥬", KERING: "🌾", BEKALAN: "📦" };
+
+function norm(s) {
+  s = (s || "").toUpperCase().trim();
+  s = s.replace(/\(.*?\)/g, "");
+  s = s.replace(/[^A-Z0-9 ]/g, " ");
+  s = s.replace(/\s+/g, " ").trim();
+  return s;
+}
+function smartTitle(name) {
+  const m = name.match(/^(\d+)([A-Za-z].*)$/);
+  // (leading-digit-glued-word fix skipped client-side; data already clean at source)
+  let titled = name.replace(/\w\S*/g, t => t.charAt(0).toUpperCase() + t.substr(1).toLowerCase());
+  titled = titled.replace(/[A-Za-z]+/g, w => KEEP_UPPER.has(w.toUpperCase()) ? w.toUpperCase() : w);
+  return titled;
+}
+function cleanQty(raw, fallbackUnit) {
+  raw = (raw || "").trim();
+  const m = raw.match(/^([\d½¼¾/.,]+)\s*([A-Za-z]*)$/);
+  if (m && m[1]) {
+    const unit = m[2] ? m[2].toLowerCase() : (fallbackUnit || "").toLowerCase();
+    return { qty: (m[1] + " " + unit).trim(), flagged: false };
+  }
+  return { qty: raw, flagged: true };
+}
+function qtyIsZero(raw) {
+  const m = (raw || "").match(/(\d+(?:[.,]\d+)?)/);
+  if (m) return parseFloat(m[1].replace(",", ".")) === 0;
+  return false;
+}
+function escapeHtml(s) {
+  return (s || "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function deptOutletKey(deptKey) {
+  const meta = DEPTS.find(d => d.key === deptKey);
+  return OUTLET_KEY_MAP_BY_LABEL(meta.outlet);
+}
+function OUTLET_KEY_MAP_BY_LABEL(label) {
+  if (label === "CHERAS") return "CHERAS";
+  if (label === "SUNGAI MERAB") return "SUNGAI_MERAB";
+  return "CENTRAL_KITCHEN";
+}
+
+function todayStr() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+function formatDateLabel(dateStr) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  return dt.toLocaleDateString("ms-MY", { day: "numeric", month: "long", year: "numeric" });
+}
+
+let state = {
+  view: "home",
+  deptKey: null,
+  branchOutlet: null,
+  search: "",
+  drafts: {},
+  saveMsg: {},
+  directory: JSON.parse(JSON.stringify(DIRECTORY_SEED)),
+  directoryReady: false,
+  directoryOutletTab: "CHERAS",
+  dirSearch: "",
+  dirUnresolvedOnly: false,
+  dirSaveHint: {},
+  dbHandle: null,
+  collapse: {}, // deptKey -> { CAT: true/false (true = expanded) }
+  savedByDate: {}, // dateStr -> { deptKey: doc | undefined }
+  summaryDate: todayStr(),
+  entryDate: todayStr(),
+  loadedDraftKeys: {}, // "deptKey::dateStr" -> true once we've tried loading existing data for it
+  itemOverrides: {}, // deptKey -> { itemId: { name?, unit?, minimum? } }
+  itemOverridesReady: false,
+  masterSaveHint: {},
+  purchases: [], // [{id, dateStr, items:[{name,qty,price,total}], importedAt}]
+  purchasesReady: false,
+  priceSearch: "",
+  restockReady: false,
+  restockDays: 30,
+  restockData: null, // computed on demand: {itemName: {count, totalQty, avgQty, lastDate, lastQty}}
+  importText: "",
+  importMsg: "",
+};
+
+function effectiveItems(deptKey) {
+  const overrides = state.itemOverrides[deptKey] || {};
+  return (ITEM_DATA[deptKey] || []).map(it => {
+    const o = overrides[it.id];
+    return o ? Object.assign({}, it, o) : it;
+  });
+}
+
+function getCollapseMap(key) {
+  if (!state.collapse[key]) state.collapse[key] = {};
+  return state.collapse[key];
+}
+
+function draftKey(key) {
+  return `${key}::${state.entryDate}`;
+}
+
+function getDraft(key) {
+  const dk = draftKey(key);
+  if (!state.drafts[dk]) state.drafts[dk] = { pic: "", items: {}, adhoc: [] };
+  return state.drafts[dk];
+}
+
+async function ensureDraftLoaded(key) {
+  const dk = draftKey(key);
+  if (state.loadedDraftKeys[dk]) return;
+  state.loadedDraftKeys[dk] = true;
+  const dateStr = state.entryDate;
+  try {
+    const docSnap = await db.collection("stocktakes").doc(`${key}_${dateStr}`).get();
+    if (!state.savedByDate[dateStr]) state.savedByDate[dateStr] = {};
+    if (docSnap && docSnap.exists) {
+      const data = docSnap.data();
+      state.savedByDate[dateStr][key] = data;
+      const draft = getDraft(key);
+      draft.pic = data.pic || "";
+      draft.adhoc = (data.adhoc || []).map(a => ({ name: a.name, supplier: a.supplier, qty: a.qty }));
+      (data.items || []).forEach(it => {
+        draft.items[it.name] = { current: it.current || "", orderQty: it.orderQty || "", status: it.status || "" };
+      });
+    }
+  } catch (e) {}
+  if (state.view === "dept" && state.deptKey === key) render();
+}
+
+function isLowStock(minimum, current) {
+  if (!minimum || minimum === "-" || current === "" || current === undefined) return false;
+  const minNum = parseFloat(String(minimum).replace(",", "."));
+  const curNum = parseFloat(String(current).replace(",", "."));
+  if (isNaN(minNum) || isNaN(curNum)) return false;
+  return curNum < minNum;
+}
+
+function render() {
+  const app = document.getElementById("app");
+  if (state.view === "home") app.innerHTML = renderHome();
+  else if (state.view === "branch") app.innerHTML = renderBranch(state.branchOutlet);
+  else if (state.view === "dept") app.innerHTML = renderDept(state.deptKey);
+  else if (state.view === "summary") app.innerHTML = renderSummary();
+  else if (state.view === "directory") app.innerHTML = renderDirectory();
+  else if (state.view === "prices") app.innerHTML = renderPrices();
+  else if (state.view === "restock") app.innerHTML = renderRestock();
+  attachHandlers();
+}
+
+function renderHome() {
+  const branchCard = (outletLabel, emoji, subtitle) => `
+    <button class="dept-card" data-go="branch" data-outlet="${escapeHtml(outletLabel)}">
+      <div class="emoji">${emoji}</div>
+      <div class="outlet">${escapeHtml(outletLabel)}</div>
+      <div class="dept">${escapeHtml(subtitle)}</div>
+    </button>`;
+  const centralDept = DEPTS.find(d => d.key === "central_kitchen");
+  return `
+    <header class="top">
+      <h1>🧾 Experiment Kitchen — Ordering</h1>
+      <p class="sub">Pilih branch untuk stock-take &amp; order</p>
+    </header>
+    <div class="container">
+      <div class="grid">
+        <button class="wide-card summary-card" data-go="summary">
+          <div><div class="t">📋 Order Summary</div><div class="s">WhatsApp-ready, ikut outlet &amp; supplier</div></div>
+          <div>→</div>
+        </button>
+        <button class="wide-card directory-card" data-go="directory">
+          <div><div class="t">📇 Item &amp; Supplier</div><div class="s">Edit nama, supplier, unit &amp; minimum</div></div>
+          <div>→</div>
+        </button>
+        <button class="wide-card directory-card" data-go="prices">
+          <div><div class="t">💰 Harga &amp; Kos</div><div class="s">Harga terkini, trend &amp; kos harian</div></div>
+          <div>→</div>
+        </button>
+        <button class="wide-card directory-card" data-go="restock">
+          <div><div class="t">📈 Restocking Insights</div><div class="s">Kekerapan order &amp; cadangan minimum</div></div>
+          <div>→</div>
+        </button>
+        ${branchCard("CHERAS", "📍", "Kitchen & Floor / Bar")}
+        ${branchCard("SUNGAI MERAB", "📍", "Kitchen & Floor / Bar")}
+        <button class="dept-card" data-go="dept" data-key="central_kitchen">
+          <div class="emoji">${centralDept.emoji}</div>
+          <div class="outlet">${escapeHtml(centralDept.outlet)}</div>
+          <div class="dept">Stock-take terus</div>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderBranch(outletLabel) {
+  const depts = DEPTS.filter(d => d.outlet === outletLabel);
+  const cards = depts.map(d => `
+    <button class="dept-card" data-go="dept" data-key="${d.key}">
+      <div class="emoji">${d.emoji}</div>
+      <div class="outlet">${escapeHtml(d.dept)}</div>
+      <div class="dept">Stock-take &amp; order</div>
+    </button>
+  `).join("");
+  return `
+    <header class="top">
+      <div class="back-row"><button class="back-btn" data-go="home">← Kembali</button></div>
+      <h1>📍 ${escapeHtml(outletLabel)}</h1>
+      <p class="sub">Pilih department</p>
+    </header>
+    <div class="container"><div class="grid">${cards}</div></div>
+  `;
+}
+
+function renderDept(key) {
+  const meta = DEPTS.find(d => d.key === key);
+  const its = effectiveItems(key);
+  ensureDraftLoaded(key);
+  const draft = getDraft(key);
+  const search = state.search.toLowerCase();
+  const searchActive = search.length > 0;
+  const collapseMap = getCollapseMap(key);
+
+  const filtered = its.filter(it => it.name.toLowerCase().includes(search));
+  const groups = {};
+  filtered.forEach(it => {
+    const cat = it.cat || "KERING";
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(it);
+  });
+
+  let groupsHtml = CAT_ORDER.filter(c => groups[c] && groups[c].length).map(cat => {
+    const isOpen = searchActive || !!collapseMap[cat];
+    const rows = !isOpen ? "" : groups[cat].map(it => {
+      const idKey = it.name;
+      const val = draft.items[idKey] || {};
+      const low = isLowStock(it.minimum, val.current);
+      const filled = (val.current !== undefined && val.current !== "") || (val.orderQty !== undefined && val.orderQty !== "");
+      return `
+        <div class="item-card ${low ? "low" : ""} ${filled ? "filled" : ""}">
+          <div class="item-name">${escapeHtml(it.name)}</div>
+          <div class="item-meta">Min: ${escapeHtml(it.minimum || "-")} ${escapeHtml(it.unit || "")}</div>
+          <div class="item-inputs">
+            <div class="field current"><label>Current</label>
+              <input type="text" placeholder="0" data-item="${escapeHtml(idKey)}" data-field="current" value="${escapeHtml(val.current || "")}"></div>
+            <div class="field"><label>Order Qty</label>
+              <input type="text" placeholder="0" data-item="${escapeHtml(idKey)}" data-field="orderQty" value="${escapeHtml(val.orderQty || "")}"></div>
+            <div class="field status"><label>Status</label>
+              <input type="text" placeholder="OK / notes" data-item="${escapeHtml(idKey)}" data-field="status" value="${escapeHtml(val.status || "")}"></div>
+          </div>
+        </div>`;
+    }).join("");
+    return `<div class="supplier-group">
+      <div class="supplier-title ${isOpen ? "open" : ""}" data-toggle-cat="${cat}">
+        ${CAT_EMOJI[cat]} ${escapeHtml(CAT_LABEL[cat])} <span class="count">${groups[cat].length}</span>
+        <span class="chev">▶</span>
+      </div>
+      ${rows}
+    </div>`;
+  }).join("");
+
+  if (!filtered.length) groupsHtml = `<div class="empty">Tiada item jumpa.</div>`;
+
+  const adhocRows = draft.adhoc.map((a, i) => `
+    <div class="adhoc-row">
+      <input class="name" placeholder="Nama item" data-adhoc="${i}" data-afield="name" value="${escapeHtml(a.name || "")}">
+      <input placeholder="Supplier" data-adhoc="${i}" data-afield="supplier" value="${escapeHtml(a.supplier || "")}">
+      <input placeholder="Qty" style="max-width:70px" data-adhoc="${i}" data-afield="qty" value="${escapeHtml(a.qty || "")}">
+      <button class="del-adhoc-btn" data-del-adhoc="${i}">✕</button>
+    </div>`).join("");
+
+  const savedInfo = (state.savedByDate[state.entryDate] || {})[key];
+  const lastUpdated = savedInfo && savedInfo.submittedAt ? `<div class="last-updated">Last saved: ${new Date(savedInfo.submittedAt).toLocaleString("ms-MY")} — PIC: ${escapeHtml(savedInfo.pic || "-")}</div>` : "";
+  const msg = state.saveMsg[key];
+  const msgHtml = msg ? `<div class="status-msg ${msg.type}">${escapeHtml(msg.text)}</div>` : "";
+
+  return `
+    <header class="top">
+      <div class="back-row"><button class="back-btn" data-go="${meta.outlet === "CENTRAL KITCHEN" ? "home" : "branch"}" data-outlet="${escapeHtml(meta.outlet)}">← Kembali</button></div>
+      <h1>${escapeHtml(meta.outlet)} — ${escapeHtml(meta.dept)}</h1>
+      <p class="sub">Pilih tarikh order ni untuk hari apa, lepas tu isi CURRENT &amp; ORDER QTY. Kosong = tak perlu order.</p>
+      <div class="pic-row"><input type="date" id="entry-date-input" value="${state.entryDate}"></div>
+      ${lastUpdated}
+    </header>
+    <div class="container">
+      <div class="pic-row"><input type="text" id="pic-input" placeholder="Nama PIC (siapa isi)" value="${escapeHtml(draft.pic)}"></div>
+      <div class="search-wrap"><input type="text" class="search" id="search-input" placeholder="Cari item..." value="${escapeHtml(state.search)}"></div>
+      ${groupsHtml}
+      <div class="adhoc-box">
+        <div class="supplier-title">Barang Baharu / Ad Hoc</div>
+        ${adhocRows}
+        <button class="add-adhoc-btn" id="add-adhoc-btn">+ Tambah item baharu</button>
+      </div>
+      <div class="save-bar">
+        <button class="save-btn" id="save-btn">💾 Simpan Stock-Take</button>
+        ${msgHtml}
+      </div>
+    </div>
+  `;
+}
+
+function buildOutletSummary(outletKey, dateStr) {
+  const label = OUTLET_LABEL[outletKey];
+  const relevantDepts = DEPTS.filter(d => deptOutletKey(d.key) === outletKey);
+  const dirMap = state.directory[outletKey] || {};
+  const bySupplier = {};
+  const ckTransferItems = [];
+  const missingDepts = [];
+  const dayData = state.savedByDate[dateStr] || {};
+  relevantDepts.forEach(d => {
+    const saved = dayData[d.key];
+    if (!saved) { missingDepts.push(d.dept); return; }
+    (saved.items || []).forEach(it => {
+      const { qty, flagged } = cleanQty(it.orderQty, it.unit);
+      if (!it.orderQty || qtyIsZero(it.orderQty)) return;
+      const sup = dirMap[it.id || norm(it.name)] || "Supplier Perlu Confirm";
+      if (sup.toUpperCase().includes("CK TRANSFER")) {
+        ckTransferItems.push({ name: smartTitle(it.name), qty });
+        return;
+      }
+      if (!bySupplier[sup]) bySupplier[sup] = [];
+      bySupplier[sup].push({ name: smartTitle(it.name), qty, flagged });
+    });
+    (saved.adhoc || []).forEach(a => {
+      if (!a.qty || qtyIsZero(a.qty)) return;
+      const sup = a.supplier ? a.supplier : "Supplier Perlu Confirm";
+      if (sup.toUpperCase().includes("CK TRANSFER")) {
+        ckTransferItems.push({ name: smartTitle(a.name), qty: a.qty });
+        return;
+      }
+      if (!bySupplier[sup]) bySupplier[sup] = [];
+      bySupplier[sup].push({ name: smartTitle(a.name), qty: a.qty, flagged: false });
+    });
+  });
+  return { label, bySupplier, missingDepts, ckTransferItems };
+}
+
+function renderSummary() {
+  const dateStr = state.summaryDate;
+  const loaded = !!state.savedByDate[dateStr];
+  const isToday = dateStr === todayStr();
+
+  if (!loaded) {
+    loadDateData(dateStr);
+  }
+
+  const blocks = OUTLETS.map(ok => {
+    const { label, bySupplier, missingDepts, ckTransferItems } = buildOutletSummary(ok, dateStr);
+    const suppliers = Object.keys(bySupplier).sort((a,b) => (a==="Supplier Perlu Confirm")-(b==="Supplier Perlu Confirm") || bySupplier[b].length-bySupplier[a].length);
+    const missingHtml = missingDepts.length ? `<div class="status-msg err">⚠️ Belum isi: ${missingDepts.map(escapeHtml).join(", ")}</div>` : "";
+    const ckHtml = ckTransferItems.length ? `
+      <div class="sup-title">🔄 Transfer dari Central Kitchen (bukan beli)</div>
+      ${ckTransferItems.map(e => `<div class="item-line"><span class="bullet">•</span> ${escapeHtml(e.name)} – ${escapeHtml(e.qty)}</div>`).join("")}
+    ` : "";
+    if (!suppliers.length) {
+      if (!missingDepts.length && !ckTransferItems.length) return "";
+      return `<div class="outlet-block"><h2>${escapeHtml(label)}</h2>${missingHtml}${ckHtml}</div>`;
+    }
+    let text = `${label}\n\n`;
+    let html = `<h2>${escapeHtml(label)}</h2>${missingHtml}`;
+    suppliers.forEach(sup => {
+      text += `📍${sup}\n\n`;
+      html += `<div class="sup-title">📍${escapeHtml(sup)}</div>`;
+      bySupplier[sup].forEach(e => {
+        const flag = e.flagged ? " ⚠️" : "";
+        text += `* ${e.name} – ${e.qty}${flag}\n`;
+        html += `<div class="item-line ${e.flagged ? "flag" : ""}"><span class="bullet">•</span> ${escapeHtml(e.name)} – ${escapeHtml(e.qty)}${flag}</div>`;
+      });
+      text += "\n";
+    });
+    const waHref = "https://wa.me/?text=" + encodeURIComponent(text.trim());
+    return `<div class="outlet-block" data-text="${escapeHtml(text.trim())}">
+      ${html}
+      <button class="copy-btn" data-copy-outlet="${escapeHtml(label)}">📋 Copy</button>
+      <a class="wa-btn" target="_blank" href="${waHref}">✅ WhatsApp</a>
+      ${ckHtml}
+    </div>`;
+  }).join("");
+
+  const finalBlocks = !loaded
+    ? `<div class="empty">Memuatkan...</div>`
+    : (blocks || `<div class="empty">Tiada order untuk ${escapeHtml(formatDateLabel(dateStr))}.<br>Isi stock-take dulu kat mana-mana department.</div>`);
+
+  return `
+    <header class="top">
+      <div class="back-row"><button class="back-btn" data-go="home">← Kembali</button></div>
+      <h1>📋 Order Summary</h1>
+      <p class="sub">Auto-consolidated ikut outlet &amp; supplier — copy terus ke WhatsApp</p>
+      <div class="pic-row">
+        <input type="date" id="summary-date-input" value="${dateStr}" max="${todayStr()}">
+        <button class="add-adhoc-btn" id="summary-refresh-btn" style="flex:none;">🔄 Refresh</button>
+      </div>
+      <div class="last-updated">${isToday ? "Hari ini" : escapeHtml(formatDateLabel(dateStr))}</div>
+    </header>
+    <div class="container">${finalBlocks}</div>
+  `;
+}
+
+function renderDirectory() {
+  const outletKey = state.directoryOutletTab;
+  const dirMap = state.directory[outletKey] || {};
+  const relevantDepts = DEPTS.filter(d => deptOutletKey(d.key) === outletKey);
+  const seen = new Set();
+  let rows = [];
+  relevantDepts.forEach(d => {
+    effectiveItems(d.key).forEach(it => {
+      if (seen.has(it.id)) return;
+      seen.add(it.id);
+      rows.push({ deptKey: d.key, id: it.id, name: it.name, unit: it.unit, minimum: it.minimum });
+    });
+  });
+  const search = state.dirSearch.toLowerCase();
+  rows = rows.filter(r => r.name.toLowerCase().includes(search));
+  if (state.dirUnresolvedOnly) rows = rows.filter(r => !dirMap[r.id]);
+  rows.sort((a,b) => a.name.localeCompare(b.name));
+
+  const unresolvedCount = rows.filter(r => !dirMap[r.id]).length;
+  const tabs = OUTLETS.map(ok => `<button class="dir-tab ${ok===outletKey?"active":""}" data-dir-tab="${ok}">${escapeHtml(OUTLET_LABEL[ok])}</button>`).join("");
+
+  const rowsHtml = rows.map(r => {
+    const sup = dirMap[r.id] || "";
+    return `<div class="item-card">
+      <input class="item-name-input" data-master-dept="${r.deptKey}" data-master-id="${escapeHtml(r.id)}" data-master-field="name" value="${escapeHtml(r.name)}">
+      <div class="item-inputs">
+        <div class="field"><label>Supplier</label>
+          <input type="text" placeholder="Perlu Confirm" class="${sup ? "" : "unresolved"}" data-dir-item="${escapeHtml(r.id)}" data-dir-outlet="${outletKey}" value="${escapeHtml(sup)}"></div>
+        <div class="field"><label>Unit</label>
+          <input type="text" data-master-dept="${r.deptKey}" data-master-id="${escapeHtml(r.id)}" data-master-field="unit" value="${escapeHtml(r.unit)}"></div>
+        <div class="field"><label>Minimum</label>
+          <input type="text" data-master-dept="${r.deptKey}" data-master-id="${escapeHtml(r.id)}" data-master-field="minimum" value="${escapeHtml(r.minimum)}"></div>
+      </div>
+    </div>`;
+  }).join("");
+
+  const hintKey = outletKey;
+  const hint = state.dirSaveHint[hintKey] || state.masterSaveHint[outletKey] || "";
+
+  return `
+    <header class="top">
+      <div class="back-row"><button class="back-btn" data-go="home">← Kembali</button></div>
+      <h1>📇 Item &amp; Supplier</h1>
+      <p class="sub">Edit nama, supplier, unit &amp; minimum stock. Auto-save. Supplier kosong = "Perlu Confirm".</p>
+      <div class="dir-outlet-tabs">${tabs}</div>
+      <div class="search-wrap"><input type="text" class="search" id="dir-search-input" placeholder="Cari item..." value="${escapeHtml(state.dirSearch)}"></div>
+      <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:0.8rem;color:var(--ink-soft);">
+        <input type="checkbox" id="dir-unresolved-toggle" ${state.dirUnresolvedOnly ? "checked" : ""}>
+        Tunjuk "Perlu Confirm" sahaja (${unresolvedCount})
+      </label>
+    </header>
+    <div class="container">
+      <div class="dir-save-hint">${escapeHtml(hint)}</div>
+      ${unresolvedCount > 0 ? `
+      <div class="banner" style="display:flex;flex-direction:column;gap:8px;">
+        <strong style="color:var(--ink);">Set semua "Perlu Confirm" yang tunjuk di atas (${unresolvedCount}) ke satu supplier:</strong>
+        <div class="add-dir-row">
+          <input type="text" id="bulk-dir-supplier" placeholder="Contoh: Ck Transfer Only">
+          <button class="add-dir-btn" id="bulk-dir-btn">Set Semua</button>
+        </div>
+      </div>` : ""}
+      ${rows.length ? rowsHtml : '<div class="empty">Tiada item jumpa.</div>'}
+      <div class="add-dir-box">
+        <div class="supplier-title">Tambah Item Baharu ke Directory</div>
+        <div class="add-dir-row">
+          <input type="text" id="new-dir-name" placeholder="Nama item">
+          <input type="text" id="new-dir-supplier" placeholder="Supplier" style="max-width:120px">
+          <button class="add-dir-btn" id="add-dir-btn">+ Simpan</button>
+        </div>
+        <div class="banner">Item baharu ni akan auto-detect lain kali bila nama sama muncul dalam stock-take atau order.</div>
+      </div>
+    </div>
+  `;
+}
+
+function attachHandlers() {
+  document.querySelectorAll("[data-go]").forEach(el => {
+    el.onclick = () => {
+      state.view = el.dataset.go; state.deptKey = el.dataset.key || state.deptKey;
+      state.branchOutlet = el.dataset.outlet || state.branchOutlet;
+      if (el.dataset.go === "dept") state.entryDate = todayStr();
+      if (el.dataset.go === "summary") { state.summaryDate = todayStr(); delete state.savedByDate[state.summaryDate]; }
+      state.search = ""; render(); window.scrollTo(0, 0);
+    };
+  });
+
+  const searchInput = document.getElementById("search-input");
+  if (searchInput) {
+    searchInput.oninput = (e) => {
+      state.search = e.target.value;
+      const pos = e.target.selectionStart;
+      render();
+      const ni = document.getElementById("search-input");
+      if (ni) { ni.focus(); ni.setSelectionRange(pos, pos); }
+    };
+  }
+
+  const picInput = document.getElementById("pic-input");
+  if (picInput) picInput.oninput = (e) => { getDraft(state.deptKey).pic = e.target.value; };
+
+  const entryDateInput = document.getElementById("entry-date-input");
+  if (entryDateInput) {
+    entryDateInput.onchange = (e) => {
+      state.entryDate = e.target.value;
+      render();
+    };
+  }
+
+  const summaryDateInput = document.getElementById("summary-date-input");
+  if (summaryDateInput) {
+    summaryDateInput.onchange = (e) => {
+      state.summaryDate = e.target.value;
+      delete state.savedByDate[state.summaryDate];
+      render();
+    };
+  }
+  const summaryRefreshBtn = document.getElementById("summary-refresh-btn");
+  if (summaryRefreshBtn) {
+    summaryRefreshBtn.onclick = () => {
+      summaryRefreshBtn.textContent = "🔄 Memuat...";
+      loadDateData(state.summaryDate);
+    };
+  }
+
+  const priceSearchInput = document.getElementById("price-search-input");
+  if (priceSearchInput) {
+    priceSearchInput.oninput = (e) => {
+      state.priceSearch = e.target.value;
+      const pos = e.target.selectionStart;
+      render();
+      const ni = document.getElementById("price-search-input");
+      if (ni) { ni.focus(); ni.setSelectionRange(pos, pos); }
+    };
+  }
+  const importTextarea = document.getElementById("import-textarea");
+  if (importTextarea) importTextarea.oninput = (e) => { state.importText = e.target.value; };
+  const importBtn = document.getElementById("import-btn");
+  if (importBtn) importBtn.onclick = () => handleImport();
+  const receiptPhotoInput = document.getElementById("receipt-photo-input");
+  if (receiptPhotoInput) receiptPhotoInput.onchange = (e) => handleReceiptPhoto(e.target.files[0]);
+
+  document.querySelectorAll("[data-restock-days]").forEach(el => {
+    el.onclick = () => {
+      state.restockDays = parseInt(el.dataset.restockDays, 10);
+      state.restockData = null;
+      render();
+    };
+  });
+
+  document.querySelectorAll("[data-toggle-cat]").forEach(el => {
+    el.onclick = () => {
+      const cm = getCollapseMap(state.deptKey);
+      const cat = el.dataset.toggleCat;
+      cm[cat] = !cm[cat];
+      render();
+    };
+  });
+
+  document.querySelectorAll("[data-item]").forEach(el => {
+    el.oninput = (e) => {
+      const draft = getDraft(state.deptKey);
+      const key = el.dataset.item, field = el.dataset.field;
+      if (!draft.items[key]) draft.items[key] = {};
+      draft.items[key][field] = e.target.value;
+      const card = el.closest(".item-card");
+      if (field === "current") {
+        const items = effectiveItems(state.deptKey);
+        const itemDef = items.find(i => i.name === key);
+        card.classList.toggle("low", itemDef ? isLowStock(itemDef.minimum, e.target.value) : false);
+      }
+      const cur = draft.items[key].current, oq = draft.items[key].orderQty;
+      card.classList.toggle("filled", !!(cur || oq));
+    };
+  });
+
+  const addAdhocBtn = document.getElementById("add-adhoc-btn");
+  if (addAdhocBtn) addAdhocBtn.onclick = () => { getDraft(state.deptKey).adhoc.push({ name:"", supplier:"", qty:"" }); render(); };
+
+  document.querySelectorAll("[data-del-adhoc]").forEach(el => {
+    el.onclick = () => { getDraft(state.deptKey).adhoc.splice(parseInt(el.dataset.delAdhoc,10),1); render(); };
+  });
+  document.querySelectorAll("[data-adhoc]").forEach(el => {
+    el.oninput = (e) => { getDraft(state.deptKey).adhoc[parseInt(el.dataset.adhoc,10)][el.dataset.afield] = e.target.value; };
+  });
+
+  const saveBtn = document.getElementById("save-btn");
+  if (saveBtn) saveBtn.onclick = () => saveDept(state.deptKey);
+
+  document.querySelectorAll("[data-copy-outlet]").forEach(el => {
+    el.onclick = () => {
+      const block = el.closest(".outlet-block");
+      const text = block.dataset.text;
+      navigator.clipboard.writeText(text).then(() => {
+        el.textContent = "✅ Copied!"; setTimeout(() => { el.textContent = "📋 Copy"; }, 1500);
+      }).catch(() => {});
+    };
+  });
+
+  // Directory view
+  document.querySelectorAll("[data-dir-tab]").forEach(el => {
+    el.onclick = () => { state.directoryOutletTab = el.dataset.dirTab; state.dirSearch = ""; render(); };
+  });
+  const dirSearchInput = document.getElementById("dir-search-input");
+  if (dirSearchInput) {
+    dirSearchInput.oninput = (e) => {
+      state.dirSearch = e.target.value;
+      const pos = e.target.selectionStart;
+      render();
+      const ni = document.getElementById("dir-search-input");
+      if (ni) { ni.focus(); ni.setSelectionRange(pos, pos); }
+    };
+  }
+  document.querySelectorAll("[data-dir-item]").forEach(el => {
+    let debounceTimer;
+    el.onchange = () => saveDirectoryEntry(el.dataset.dirOutlet, el.dataset.dirItem, el.value.trim());
+  });
+  document.querySelectorAll("[data-master-field]").forEach(el => {
+    el.onchange = () => saveItemMaster(el.dataset.masterDept, el.dataset.masterId, el.dataset.masterField, el.value.trim());
+  });
+  const unresolvedToggle = document.getElementById("dir-unresolved-toggle");
+  if (unresolvedToggle) {
+    unresolvedToggle.onchange = (e) => { state.dirUnresolvedOnly = e.target.checked; render(); };
+  }
+  const bulkBtn = document.getElementById("bulk-dir-btn");
+  if (bulkBtn) {
+    bulkBtn.onclick = () => {
+      const supEl = document.getElementById("bulk-dir-supplier");
+      const sup = supEl.value.trim();
+      if (!sup) return;
+      const normNames = Array.from(document.querySelectorAll(".item-card input.unresolved[data-dir-item]"))
+        .map(el => el.dataset.dirItem);
+      if (!normNames.length) return;
+      saveDirectoryBulk(state.directoryOutletTab, normNames, sup);
+      supEl.value = "";
+    };
+  }
+  const addDirBtn = document.getElementById("add-dir-btn");
+  if (addDirBtn) {
+    addDirBtn.onclick = () => {
+      const nameEl = document.getElementById("new-dir-name");
+      const supEl = document.getElementById("new-dir-supplier");
+      const name = nameEl.value.trim(), sup = supEl.value.trim();
+      if (!name || !sup) return;
+      saveDirectoryEntry(state.directoryOutletTab, norm(name), sup);
+      nameEl.value = ""; supEl.value = "";
+      // also inject into visible rows immediately
+      state.directory[state.directoryOutletTab][norm(name)] = sup;
+      render();
+    };
+  }
+}
+
+async function saveDept(key) {
+  const btn = document.getElementById("save-btn");
+  btn.disabled = true; btn.textContent = "Menyimpan...";
+  const draft = getDraft(key);
+  const meta = DEPTS.find(d => d.key === key);
+  const itemsList = effectiveItems(key)
+    .map(it => {
+      const v = draft.items[it.name] || {};
+      return { id: it.id, name: it.name, unit: it.unit, minimum: it.minimum,
+               current: v.current || "", orderQty: v.orderQty || "", status: v.status || "" };
+    })
+    .filter(it => it.current !== "" || it.orderQty !== "" || it.status !== "");
+  const adhocList = draft.adhoc.filter(a => a.name);
+  const doc = { department: meta.dept, outlet: meta.outlet, pic: draft.pic,
+                items: itemsList, adhoc: adhocList, dateStr: state.entryDate, submittedAt: new Date().toISOString() };
+  try {
+    await db.collection("stocktakes").doc(`${key}_${state.entryDate}`).set(doc);
+    if (!state.savedByDate[state.entryDate]) state.savedByDate[state.entryDate] = {};
+    state.savedByDate[state.entryDate][key] = doc;
+    state.saveMsg[key] = { type: "ok", text: `✅ Tersimpan untuk ${formatDateLabel(state.entryDate)}!` };
+  } catch (err) {
+    state.saveMsg[key] = { type: "err", text: "⚠️ Gagal simpan — check sambungan internet." };
+  }
+  render(); window.scrollTo(0, document.body.scrollHeight);
+}
+
+async function loadDateData(dateStr) {
+  const dayData = {};
+  for (const d of DEPTS) {
+    try {
+      const doc = await db.collection("stocktakes").doc(`${d.key}_${dateStr}`).get();
+      if (doc && doc.exists) dayData[d.key] = doc.data();
+    } catch (e) {}
+  }
+  state.savedByDate[dateStr] = dayData;
+  render();
+}
+
+async function loadDirectory() {
+  try {
+    const ref = db.collection("directory").doc("map");
+    const doc = await ref.get();
+    if (doc && doc.exists) {
+      const data = doc.data();
+      OUTLETS.forEach(ok => { state.directory[ok] = Object.assign({}, DIRECTORY_SEED[ok] || {}, data[ok] || {}); });
+    } else {
+      await ref.set(DIRECTORY_SEED);
+    }
+  } catch (e) {}
+  state.directoryReady = true;
+  render();
+}
+
+async function saveDirectoryBulk(outletKey, normNames, supplier) {
+  normNames.forEach(n => { state.directory[outletKey][n] = supplier; });
+  state.dirSaveHint[outletKey] = `Menyimpan ${normNames.length} item...`;
+  render();
+  try {
+    const ref = db.collection("directory").doc("map");
+    const patch = {};
+    patch[outletKey] = {};
+    normNames.forEach(n => { patch[outletKey][n] = supplier; });
+    try {
+      await ref.update(patch);
+    } catch (e) {
+      await ref.set(state.directory);
+    }
+    state.dirSaveHint[outletKey] = `✅ ${normNames.length} item disimpan`;
+  } catch (e) {
+    state.dirSaveHint[outletKey] = "⚠️ Gagal simpan";
+  }
+  render();
+  setTimeout(() => {
+    state.dirSaveHint[outletKey] = "";
+    render();
+  }, 2200);
+}
+
+async function saveDirectoryEntry(outletKey, normName, supplier) {
+  state.directory[outletKey][normName] = supplier;
+  state.dirSaveHint[outletKey] = "Menyimpan...";
+  const hintEl = document.querySelector(".dir-save-hint");
+  if (hintEl) hintEl.textContent = "Menyimpan...";
+  try {
+    const ref = db.collection("directory").doc("map");
+    const patch = {};
+    patch[outletKey] = {};
+    patch[outletKey][normName] = supplier;
+    try {
+      await ref.update(patch);
+    } catch (e) {
+      await ref.set(state.directory); // fallback if doc didn't exist yet
+    }
+    state.dirSaveHint[outletKey] = "✅ Disimpan";
+  } catch (e) {
+    state.dirSaveHint[outletKey] = "⚠️ Gagal simpan";
+  }
+  const hintEl2 = document.querySelector(".dir-save-hint");
+  if (hintEl2) hintEl2.textContent = state.dirSaveHint[outletKey];
+  setTimeout(() => {
+    state.dirSaveHint[outletKey] = "";
+    const h = document.querySelector(".dir-save-hint");
+    if (h) h.textContent = "";
+  }, 1800);
+}
+
+function renderPrices() {
+  const search = state.priceSearch.toLowerCase();
+  const byItem = {}; // normName -> { display, history: [{date, qty, price, total}] }
+  state.purchases.forEach(batch => {
+    (batch.items || []).forEach(it => {
+      const n = norm(it.name);
+      if (!n) return;
+      if (!byItem[n]) byItem[n] = { display: smartTitle(it.name), history: [] };
+      byItem[n].history.push({ date: batch.dateStr, qty: it.qty, price: it.price, total: it.total });
+    });
+  });
+  Object.values(byItem).forEach(v => v.history.sort((a,b) => a.date < b.date ? 1 : -1));
+
+  let rows = Object.entries(byItem).map(([n, v]) => ({ norm: n, ...v }));
+  rows = rows.filter(r => r.display.toLowerCase().includes(search));
+  rows.sort((a,b) => a.display.localeCompare(b.display));
+
+  const rowsHtml = rows.map(r => {
+    const latest = r.history[0];
+    const prev = r.history[1];
+    let trend = "";
+    if (prev && latest.price !== prev.price) {
+      const diff = latest.price - prev.price;
+      trend = diff > 0 ? ` <span style="color:var(--low);">▲ ${Math.abs(diff).toFixed(2)}</span>` : ` <span style="color:var(--ok);">▼ ${Math.abs(diff).toFixed(2)}</span>`;
+    }
+    const historyLines = r.history.slice(0, 6).map(h => `<div class="item-meta">${escapeHtml(h.date)} — RM${Number(h.price).toFixed(2)} × ${escapeHtml(String(h.qty))}</div>`).join("");
+    return `<div class="item-card">
+      <div class="item-name">${escapeHtml(r.display)}</div>
+      <div style="font-size:1.1rem;font-weight:800;margin-top:4px;">RM${Number(latest.price).toFixed(2)}${trend}</div>
+      <div class="item-meta" style="margin-top:2px;">Terkini: ${escapeHtml(latest.date)} · ${r.history.length} rekod</div>
+      <div style="margin-top:8px;">${historyLines}</div>
+    </div>`;
+  }).join("");
+
+  // daily cost summary
+  const byDate = {};
+  state.purchases.forEach(batch => {
+    const sum = (batch.items || []).reduce((s, it) => s + (Number(it.total) || 0), 0);
+    byDate[batch.dateStr] = (byDate[batch.dateStr] || 0) + sum;
+  });
+  const dateEntries = Object.entries(byDate).sort((a,b) => a[0] < b[0] ? 1 : -1).slice(0, 14);
+  const dailyHtml = dateEntries.map(([d, total]) => `<div class="item-line"><span class="bullet">•</span> ${escapeHtml(d)} — <strong>RM${total.toFixed(2)}</strong></div>`).join("");
+
+  return `
+    <header class="top">
+      <div class="back-row"><button class="back-btn" data-go="home">← Kembali</button></div>
+      <h1>💰 Harga &amp; Kos</h1>
+      <p class="sub">Import resit pembelian untuk track harga &amp; kos harian.</p>
+    </header>
+    <div class="container">
+      <div class="outlet-block">
+        <h2>📥 Import Pembelian</h2>
+        <label for="receipt-photo-input" class="save-btn" style="display:block;text-align:center;margin-bottom:10px;background:linear-gradient(135deg, var(--accent-2), var(--accent));">
+          📷 Upload Resit (Claude baca automatik)
+        </label>
+        <input type="file" id="receipt-photo-input" accept="image/*" style="display:none;">
+        <div id="receipt-scan-status" class="status-msg"></div>
+        <p class="sub" style="margin:12px 0 8px;">Atau taip/tampal manual — satu baris satu item, format: <strong>Nama | Qty | Harga</strong></p>
+        <textarea id="import-textarea" rows="6" style="width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-family:var(--font);font-size:0.82rem;">${escapeHtml(state.importText)}</textarea>
+        <div class="pic-row">
+          <input type="date" id="import-date-input" value="${state.entryDate}">
+        </div>
+        <button class="save-btn" id="import-btn" style="margin-top:10px;">📥 Import</button>
+        ${state.importMsg ? `<div class="status-msg ${state.importMsg.startsWith("✅") ? "ok" : "err"}">${escapeHtml(state.importMsg)}</div>` : ""}
+      </div>
+
+      ${dateEntries.length ? `<div class="outlet-block"><h2>📊 Kos Harian</h2>${dailyHtml}</div>` : ""}
+
+      <div class="search-wrap"><input type="text" class="search" id="price-search-input" placeholder="Cari item..." value="${escapeHtml(state.priceSearch)}"></div>
+      ${rows.length ? rowsHtml : '<div class="empty">Tiada rekod harga lagi. Import resit dulu.</div>'}
+    </div>
+  `;
+}
+
+function renderRestock() {
+  const data = state.restockData;
+  const days = state.restockDays;
+
+  if (!data && state.restockReady) {
+    // ready flag set but no data means never computed for current days window
+  }
+  if (!state.restockLoading && !data) {
+    computeRestockData(days);
+  }
+
+  let rowsHtml = "";
+  if (data) {
+    let rows = Object.entries(data).map(([name, v]) => ({ name, ...v })).filter(r => r.count > 0);
+    rows.sort((a,b) => b.count - a.count);
+    rowsHtml = rows.map(r => {
+      const daysSince = r.lastDate ? Math.round((new Date() - new Date(r.lastDate)) / 86400000) : null;
+      const curDaysSince = r.curDate ? Math.round((new Date() - new Date(r.curDate)) / 86400000) : null;
+      const low = r.curValue ? isLowStock(r.minimum, r.curValue) : false;
+      const curHtml = r.curValue
+        ? `<div class="item-meta ${low ? "" : ""}" style="${low ? "color:var(--low);font-weight:700;" : ""}">Current stock: ${escapeHtml(r.curValue)}${low ? " ⚠️ bawah minimum" : ""} (dicatat ${curDaysSince} hari lepas)</div>`
+        : `<div class="item-meta">Current stock: tiada rekod</div>`;
+      return `<div class="item-card">
+        <div class="item-name">${escapeHtml(smartTitle(r.name))}</div>
+        <div class="item-meta">Order ${r.count}× dalam ${days} hari · purata ${r.avgQty.toFixed(1)} setiap kali</div>
+        <div class="item-meta">Kali terakhir order: ${escapeHtml(r.lastDate || "-")}${daysSince !== null ? ` (${daysSince} hari lepas)` : ""}</div>
+        ${curHtml}
+        <div style="margin-top:6px;font-size:0.82rem;color:var(--accent);font-weight:700;">Cadangan minimum: ${r.avgQty.toFixed(1)} ${escapeHtml(r.unit || "")}</div>
+      </div>`;
+    }).join("");
+    if (!rows.length) rowsHtml = `<div class="empty">Tiada data order dalam ${days} hari terakhir.</div>`;
+  } else {
+    rowsHtml = `<div class="empty">Mengira...</div>`;
+  }
+
+  return `
+    <header class="top">
+      <div class="back-row"><button class="back-btn" data-go="home">← Kembali</button></div>
+      <h1>📈 Restocking Insights</h1>
+      <p class="sub">Ikut kekerapan &amp; kuantiti order sebenar — makin banyak hari data, makin tepat.</p>
+      <div class="dir-outlet-tabs">
+        <button class="dir-tab ${days===7?"active":""}" data-restock-days="7">7 hari</button>
+        <button class="dir-tab ${days===30?"active":""}" data-restock-days="30">30 hari</button>
+        <button class="dir-tab ${days===90?"active":""}" data-restock-days="90">90 hari</button>
+      </div>
+    </header>
+    <div class="container">${rowsHtml}</div>
+  `;
+}
+
+async function computeRestockData(days) {
+  state.restockLoading = true;
+  const agg = {}; // norm(name) -> {name, unit, minimum, count, totalQty, lastDate, lastQty, curDate, curValue}
+  const today = new Date();
+  for (let i = 0; i < days; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    for (const dept of DEPTS) {
+      try {
+        const doc = await db.collection("stocktakes").doc(`${dept.key}_${dateStr}`).get();
+        if (!doc || !doc.exists) continue;
+        const data = doc.data();
+        (data.items || []).forEach(it => {
+          const n = it.name.toUpperCase();
+          if (!agg[n]) agg[n] = { name: it.name, unit: it.unit, minimum: it.minimum, count: 0, totalQty: 0, lastDate: null, lastQty: null, curDate: null, curValue: null };
+          // track latest current-stock reading, independent of whether an order was placed that day
+          if (it.current && (!agg[n].curDate || dateStr > agg[n].curDate)) {
+            agg[n].curDate = dateStr;
+            agg[n].curValue = it.current;
+          }
+          const { qty, flagged } = cleanQty(it.orderQty);
+          if (!it.orderQty || flagged) return;
+          const num = parseFloat(qty);
+          if (isNaN(num)) return;
+          agg[n].count += 1;
+          agg[n].totalQty += num;
+          if (!agg[n].lastDate || dateStr > agg[n].lastDate) { agg[n].lastDate = dateStr; agg[n].lastQty = num; }
+        });
+      } catch (e) {}
+    }
+  }
+  const result = {};
+  Object.entries(agg).forEach(([n, v]) => {
+    result[v.name] = { count: v.count, avgQty: v.count ? v.totalQty / v.count : 0, lastDate: v.lastDate, lastQty: v.lastQty, unit: v.unit, minimum: v.minimum, curDate: v.curDate, curValue: v.curValue };
+  });
+  state.restockData = result;
+  state.restockLoading = false;
+  if (state.view === "restock") render();
+}
+
+async function loadPurchases() {
+  try {
+    const snap = await db.collection("purchases").get();
+    state.purchases = [];
+    snap.forEach(doc => state.purchases.push(Object.assign({ id: doc.id }, doc.data())));
+  } catch (e) {}
+  state.purchasesReady = true;
+  if (state.view === "prices") render();
+}
+
+async function handleReceiptPhoto(file) {
+  if (!file) return;
+  const statusEl = document.getElementById("receipt-scan-status");
+  if (statusEl) { statusEl.className = "status-msg"; statusEl.textContent = "📷 Membaca resit..."; }
+  try {
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(",")[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    const res = await fetch("/.netlify/functions/read-receipt", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image: base64, mediaType: file.type || "image/jpeg" })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error((data && data.error) || "Server error");
+    const items = Array.isArray(data) ? data : [];
+    if (!items.length) {
+      if (statusEl) { statusEl.className = "status-msg err"; statusEl.textContent = "⚠️ Tiada item dikesan. Cuba gambar lebih jelas."; }
+      return;
+    }
+    const lines = items.filter(it => it && it.name && it.qty && it.price).map(it => `${it.name} | ${it.qty} | ${it.price}`);
+    state.importText = (state.importText ? state.importText + "\n" : "") + lines.join("\n");
+    if (statusEl) { statusEl.className = "status-msg ok"; statusEl.textContent = `✅ ${lines.length} item dikesan — semak bawah sebelum Import.`; }
+    render();
+  } catch (e) {
+    if (statusEl) { statusEl.className = "status-msg err"; statusEl.textContent = "⚠️ Gagal baca resit — check sambungan internet."; }
+  }
+}
+
+async function handleImport() {
+  const text = document.getElementById("import-textarea").value;
+  const dateStr = document.getElementById("import-date-input").value || state.entryDate;
+  const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+  const items = [];
+  for (const line of lines) {
+    const parts = line.split("|").map(p => p.trim());
+    if (parts.length < 3) continue;
+    const name = parts[0];
+    const qty = parseFloat(parts[1].replace(",", "."));
+    const price = parseFloat(parts[2].replace(",", "."));
+    if (!name || isNaN(qty) || isNaN(price)) continue;
+    items.push({ name, qty, price, total: Math.round(qty * price * 100) / 100 });
+  }
+  if (!items.length) {
+    state.importMsg = "⚠️ Tiada baris sah dijumpai. Semak format: Nama | Qty | Harga";
+    render();
+    return;
+  }
+  const btn = document.getElementById("import-btn");
+  if (btn) { btn.disabled = true; btn.textContent = "Mengimport..."; }
+  try {
+    const doc = { dateStr, items, importedAt: new Date().toISOString() };
+    const ref = await db.collection("purchases").add(doc);
+    state.purchases.push(Object.assign({ id: ref.id }, doc));
+    state.importText = "";
+    state.importMsg = `✅ ${items.length} item diimport untuk ${dateStr}`;
+  } catch (e) {
+    state.importMsg = "⚠️ Gagal import — check sambungan internet.";
+  }
+  render();
+}
+
+async function loadItemOverrides() {
+  for (const d of DEPTS) {
+    try {
+      const doc = await db.collection("items").doc(d.key).get();
+      if (doc && doc.exists) state.itemOverrides[d.key] = doc.data();
+    } catch (e) {}
+  }
+  state.itemOverridesReady = true;
+  render();
+}
+
+async function saveItemMaster(deptKey, id, field, value) {
+  if (!state.itemOverrides[deptKey]) state.itemOverrides[deptKey] = {};
+  if (!state.itemOverrides[deptKey][id]) state.itemOverrides[deptKey][id] = {};
+  state.itemOverrides[deptKey][id][field] = value;
+  state.masterSaveHint[state.directoryOutletTab] = "Menyimpan...";
+  render();
+  try {
+    const ref = db.collection("items").doc(deptKey);
+    const patch = {};
+    patch[id] = {};
+    patch[id][field] = value;
+    try {
+      await ref.update(patch);
+    } catch (e) {
+      await ref.set(state.itemOverrides[deptKey]);
+    }
+    state.masterSaveHint[state.directoryOutletTab] = "✅ Disimpan";
+  } catch (e) {
+    state.masterSaveHint[state.directoryOutletTab] = "⚠️ Gagal simpan";
+  }
+  render();
+  setTimeout(() => {
+    state.masterSaveHint[state.directoryOutletTab] = "";
+    render();
+  }, 1800);
+}
+
+render();
+loadDateData(todayStr());
+loadDirectory();
+loadItemOverrides();
+loadPurchases();
+</script>
+</body>
+</html>
